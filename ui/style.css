@@ -1,0 +1,118 @@
+body {
+    color: #b1b1b6;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #121212;
+}
+
+.section {
+    background-color: #141414;
+    border: 1px solid #1f1f1f;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    background-color: #121212;
+    color: #b1b1b6;
+    border: solid;
+    border-color: #b1b1b6;
+    border-width: 1px;
+    border-radius: 5px;
+    margin: 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+input {
+    background-color: #121212;
+    color: #b1b1b6;
+    border: solid;
+    border-width: 1px;
+    border-color: #b1b1b6;
+    border-radius: 5px;
+}
+
+input[type="text"],
+input[type="number"] {
+    padding: 5px;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.season {
+    border: 1px solid #1f1f1f;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #1d1d1d;
+}
+
+.season h3 {
+    margin: 0 0 10px 0;
+}
+
+.episode {
+    margin-left: 20px;
+    padding: 5px;
+    border-bottom: 1px solid #272727;
+}
+
+li {
+    list-style-type: none;
+}
+
+.selected {
+    background-color: #2a2a2a;
+}
+
+
+::-webkit-scrollbar {
+    width: 12px;
+    background-color: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #1f1f1f;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #b1b1b6;
+}
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+}
+h2,h3,p {
+    margin-top: 0;
+}
+.main-right {
+    margin-right: 31px;
+}
+.main-right .section {
+    padding: 10px;
+}
+
+.wide {
+    width: 100%;
+}
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.file-list li {
+    cursor: grab;
+}
+
+.file-list li.dragged {
+    opacity: 0.5;
+}

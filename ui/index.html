@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>PMReaper (by FlorkA)</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+    </head>
+    <body>
+        <div class="container">
+            <div id="baseDirSection" class="section">
+                <p>v1.1.0 by FlorkA</p>
+                <h2>Установка базовой директории</h2>
+                <input type="text" id="baseDir" placeholder="C:\Projects">
+                <button onclick="setBaseDir()">💾</button>
+                <button onclick="browseBaseDir()">📂</button>
+            </div>
+            <div class="main-container">
+                <div class="main">
+                    <div id="projectListSection" class="section">
+                        <h2>Список проектов</h2>
+                        <ul id="projectList"></ul>
+                        <h3>Создать новый проект</h3>
+                        <input type="text" id="newProjectName"
+                            placeholder="Название проекта">
+                        <button onclick="createProject()">Создать
+                            проект</button>
+                    </div>
+                    <div id="projectDetailSection" class="section hidden">
+                        <button onclick="backToProjects()">⬅️</button>
+                        <h2>Проект: <span id="currentProjectName"></span></h2>
+                        <div id="treeContainer">
+                        </div>
+                        <button onclick="addSeason()">+ Добавить сезон</button>
+                    </div>
+                </div>
+                <div class="main-right">
+                    <div class="section wide">
+                        <div class="header-row">
+                            <h3>Равки</h3>
+                            <button
+                                onclick="openFolderForType('raws')">📂</button>
+                        </div>
+                        <ul id="rawsList" class="file-list main-file-list"
+                            ondrop="drop(event, 'raws')"
+                            ondragover="allowDrop(event)"></ul>
+                    </div>
+                    <div class="section wide">
+                        <div class="header-row">
+                            <h3>Делённые дороги</h3>
+                            <button
+                                onclick="openFolderForType('roads')">📂</button>
+                        </div>
+                        <ul id="roadsList" class="file-list main-file-list"
+                            ondrop="drop(event, 'roads')"
+                            ondragover="allowDrop(event)"></ul>
+                    </div>
+                    <div class="section wide">
+                        <div class="header-row">
+                            <h3>Озвучка</h3>
+                            <button
+                                onclick="openFolderForType('voice')">📂</button>
+                        </div>
+                        <ul id="voiceList" class="file-list main-file-list"
+                            ondrop="drop(event, 'voice')"
+                            ondragover="allowDrop(event)"></ul>
+                    </div>
+                    <div class="section wide">
+                        <div class="header-row">
+                            <h3>Субтитры</h3>
+                            <button
+                                onclick="openFolderForType('subs')">📂</button>
+                        </div>
+                        <ul id="subsList" class="file-list main-file-list"
+                            ondrop="drop(event, 'subs')"
+                            ondragover="allowDrop(event)"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>
