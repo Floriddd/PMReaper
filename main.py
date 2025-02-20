@@ -3,11 +3,18 @@ import sys
 import json
 import shutil
 import appdirs
+import requests
+from packaging import version
 from PyQt6.QtCore import QUrl, Qt, QObject, pyqtSlot, QSharedMemory, QSystemSemaphore, QByteArray
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMenu, QSystemTrayIcon, QMessageBox
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 from PyQt6.QtGui import QIcon, QDragEnterEvent, QDropEvent, QDragMoveEvent, QCloseEvent
+from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QDialog, QLabel, QHBoxLayout
+import webbrowser
+
+
+__version__ = "1.1.3"
 
 
 class MyWebEngineView(QWebEngineView):
@@ -534,6 +541,41 @@ class Bridge(QObject):
             print("Error: Season or episode is not a valid number")
 
 
+GITHUB_REPO_URL = "https://github.com/Floriddd/PMReaper.git"
+GITHUB_API_URL = "https://api.github.com/repos/Floriddd/PMReaper/releases/latest"
+GITHUB_RELEASES_URL = "https://github.com/Floriddd/PMReaper/releases/latest"
+
+class UpdateDialog(QDialog):
+    def __init__(self, latest_version, download_url, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Доступно обновление")
+        self.download_url = download_url
+
+        layout = QVBoxLayout(self)
+        label = QLabel(f"Доступна новая версия: {latest_version}.\nХотите скачать обновление?")
+        layout.addWidget(label)
+
+        button_layout = QHBoxLayout()
+        update_button = QPushButton("Скачать", self)
+        update_button.clicked.connect(self.start_download)
+        button_layout.addWidget(update_button)
+
+        cancel_button = QPushButton("Отмена", self)
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        layout.addLayout(button_layout)
+
+    def start_download(self):
+        print(f"Начинаем скачивание с URL: {self.download_url}")
+        try:
+            webbrowser.open(self.download_url)
+            self.accept()
+        except Exception as e:
+            print(f"Ошибка при открытии URL для скачивания: {e}")
+            QMessageBox.critical(self, "Ошибка", f"Не удалось открыть ссылку для скачивания в браузере: {e}")
+
+
 class MainWindow(QMainWindow):
     def __init__(self, bridge, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -564,13 +606,20 @@ class MainWindow(QMainWindow):
         tray_menu = QMenu()
         open_action = tray_menu.addAction("Открыть")
         open_action.triggered.connect(self.show_window_from_tray)
+        check_update_action = tray_menu.addAction("Проверить обновления")
+        check_update_action.triggered.connect(self.check_for_updates)
         close_action = tray_menu.addAction("Закрыть")
         close_action.triggered.connect(QApplication.instance().quit)
+        tray_menu.addSeparator()
+        version_action = tray_menu.addAction(f"Версия: {__version__}")
+        version_action.setEnabled(False)
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
         self.tray_icon.setToolTip("PMReaper")
 
         self.show()
+
+        self.check_for_updates(on_startup=True)
 
 
     def closeEvent(self, event: QCloseEvent):
@@ -598,6 +647,39 @@ class MainWindow(QMainWindow):
         self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
         self.activateWindow()
 
+    def check_for_updates(self, on_startup=False):
+        try:
+            response = requests.get(GITHUB_API_URL)
+            response.raise_for_status()
+            release_info = response.json()
+            latest_version_tag = release_info.get("tag_name")
+            latest_version = latest_version_tag.lstrip('v') if latest_version_tag else None
+
+            assets = release_info.get("assets", [])
+            download_url = None
+            if assets:
+                download_url = assets[0].get("browser_download_url")
+
+            if latest_version and download_url:
+                current_version = __version__
+
+                if version.parse(latest_version) > version.parse(current_version):
+                    dialog = UpdateDialog(latest_version, download_url, self)
+                    dialog.exec()
+                else:
+                    if not on_startup:
+                        QMessageBox.information(self, "Обновления", "У вас установлена последняя версия.")
+            else:
+                QMessageBox.warning(self, "Ошибка обновления", "Не удалось получить информацию о последней версии или ссылку на скачивание.")
+
+        except requests.exceptions.RequestException as e:
+            QMessageBox.critical(self, "Ошибка обновления", f"Ошибка при проверке обновлений: {e}")
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Ошибка обновления", "Не удалось обработать ответ сервера обновлений.")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка обновления", f"Неизвестная ошибка при проверке обновлений: {e}")
+
+
 
 def main():
     if hasattr(sys, '_MEIPASS'):
@@ -615,7 +697,6 @@ def main():
 
     bridge = Bridge()
     window = MainWindow(bridge)
-
 
     sys.exit(app.exec())
 
