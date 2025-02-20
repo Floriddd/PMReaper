@@ -9,15 +9,25 @@
     <body>
         <div class="container">
             <div id="baseDirSection" class="section">
-                <p>v1.1.0 by FlorkA</p>
-                <h2>Установка базовой директории</h2>
-                <input type="text" id="baseDir" placeholder="C:\Projects">
-                <button onclick="setBaseDir()">💾</button>
-                <button onclick="browseBaseDir()">📂</button>
+                <p>v1.2.0 by FlorkA</p>
+                <div class="header-row">
+                    <h2>Базовые директории</h2>
+                    <div id="addBaseDirUI" >
+                        <input type="text" id="newBaseDir" class="base-dir-input" placeholder="C:\Projects">
+                        <button onclick="addBaseDir()">➕</button>
+                    </div>
+                    <button onclick="browseBaseDir()">📂</button>
+                </div>
+                <ul id="baseDirList" class="base-dir-list">
+                </ul>
+            </div>
+             <div id="selectProjectDirSection" class="section hidden">
+                <h2>Текущая директория: <span id="currentBaseDirName"></span></h2>
+                <button onclick="backToBaseDirList()">⬅️</button>
             </div>
             <div class="main-container">
                 <div class="main">
-                    <div id="projectListSection" class="section">
+                    <div id="projectListSection" class="section hidden">
                         <h2>Список проектов</h2>
                         <ul id="projectList"></ul>
                         <h3>Создать новый проект</h3>

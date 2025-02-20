@@ -1,11 +1,13 @@
 var pyBridge;
 var currentProject = "";
 var currentSeason = "";
+var currentBaseDir = "";
 var currentEpisode = "";
 var episodesData = {};
 var draggedFileInfo = null;
 new QWebChannel(qt.webChannelTransport, function(channel) {
 pyBridge = channel.objects.pyBridge;
+refreshBaseDirList();
 refreshProjectList();
 });
 
@@ -13,46 +15,107 @@ function setBaseDir() {
 var path = document.getElementById("baseDir").value;
 pyBridge.setBaseDirectory(path, function(response) {
 console.log(response);
-refreshProjectList();
 });
 }
 
 function browseBaseDir() {
 pyBridge.browseDirectory(function(path) {
 if (path) {
-document.getElementById("baseDir").value = path;
+document.getElementById("newBaseDir").value = path;
 console.log("Папка выбрана: " + path);
-refreshProjectList();
 }
+});
+}
+
+function refreshBaseDirList() {
+    pyBridge.listBaseDirectories(function(response) {
+        var baseDirs = JSON.parse(response);
+        var listElem = document.getElementById("baseDirList");
+        listElem.innerHTML = "";
+        baseDirs.forEach(function(dir, index) {
+            var li = document.createElement("li");
+            var dirName = dir;
+            if (dir.length > 50) {
+                dirName = "..." + dir.slice(-50);
+            }
+            li.textContent = dirName;
+            li.title = dir;
+
+            var selectBtn = document.createElement("button");
+            selectBtn.textContent = "➡️";
+            selectBtn.onclick = function() { setCurrentBaseDir(index); };
+            li.appendChild(selectBtn);
+
+            var deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "❌";
+            deleteBtn.onclick = function() {
+                if (confirm("Удалить директорию " + dir + "?")) {
+                    deleteBaseDir(index);
+                }
+            };
+            li.appendChild(deleteBtn);
+
+            listElem.appendChild(li);
+        });
+    });
+}
+
+function addBaseDir() {
+    var path = document.getElementById("newBaseDir").value;
+    if (!path) return;
+    pyBridge.addBaseDirectory(path, function(response) {
+        console.log(response);
+        refreshBaseDirList();
+        document.getElementById("newBaseDir").value = "";
+    });
+}
+
+function deleteBaseDir(index) {
+    pyBridge.deleteBaseDirectory(index, function(response) {
+        console.log(response);
+        refreshBaseDirList();
+        refreshProjectList(); // Обновить список проектов после удаления базовой директории
+    });
+}
+function setCurrentBaseDir(index) {
+    pyBridge.setCurrentBaseDirectory(index, function(response) {
+        console.log(response);
+        refreshProjectList(); // Обновить список проектов для новой базовой директории
+        showSection('projectListSection');
+        document.getElementById("currentBaseDirName").textContent = currentBaseDir;
 });
 }
 
 function refreshProjectList() {
-pyBridge.listProjects(function(response) {
-var projects = JSON.parse(response);
-var listElem = document.getElementById("projectList");
-listElem.innerHTML = "";
-projects.forEach(function(proj) {
-var li = document.createElement("li");
-li.textContent = proj + " ";
+    pyBridge.listProjects(function(response) {
+        console.log("JS: Ответ от listProjects:", response); // <--- Добавлено для отладки
+        var projects = JSON.parse(response);
+        if (projects === null) {
+            projects = [];
+        }
+        var listElem = document.getElementById("projectList");
+        listElem.innerHTML = "";
+        projects.forEach(function(proj) {
+            var li = document.createElement("li");
+            li.textContent = proj + " ";
 
-var openBtn = document.createElement("button");
-        openBtn.textContent = "➡️";
-        openBtn.onclick = function() { openProject(proj); };
-        li.appendChild(openBtn);
+            var openBtn = document.createElement("button");
+            openBtn.textContent = "➡️";
+            openBtn.onclick = function() { openProject(proj); };
+            li.appendChild(openBtn);
 
-        var deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "❌";
-        deleteBtn.onclick = function() {
-            if (confirm("Удалить проект " + proj + "?")) {
-                deleteProject(proj);
-            }
-        };
-        li.appendChild(deleteBtn);
+            var deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "❌";
+            deleteBtn.onclick = function() {
+                if (confirm("Удалить проект " + proj + "?")) {
+                    deleteProject(proj);
+                }
+            };
+            li.appendChild(deleteBtn);
 
-        listElem.appendChild(li);
+            listElem.appendChild(li);
+        });
     });
-});
 
 }
 
@@ -89,7 +152,12 @@ function backToProjects() {
 showSection("projectListSection");
 }
 
+function backToBaseDirList() {
+showSection("baseDirSection");
+}
+
 function refreshTree() {
+
 pyBridge.listEpisodes(currentProject, function(response) {
 episodesData = JSON.parse(response);
 var container = document.getElementById("treeContainer");
@@ -359,6 +427,7 @@ console.log(response);
 function showSection(sectionId) {
 document.getElementById("projectListSection").classList.add("hidden");
 document.getElementById("projectDetailSection").classList.add("hidden");
+document.getElementById("selectProjectDirSection").classList.add("hidden");
 document.getElementById(sectionId).classList.remove("hidden");
 }
 

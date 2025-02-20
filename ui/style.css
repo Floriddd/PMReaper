@@ -45,6 +45,10 @@ input[type="number"] {
     font-size: 14px;
     margin: 5px 0;
 }
+input[type="text"].base-dir-input {
+    font-size: 14px;
+    margin: 5px 0;
+}
 
 .season {
     border: 1px solid #1f1f1f;
@@ -115,4 +119,8 @@ h2,h3,p {
 
 .file-list li.dragged {
     opacity: 0.5;
+}
+.base-dir-list li {
+    display: flex;
+    justify-content: space-between;
 }
