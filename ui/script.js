@@ -74,13 +74,13 @@ function deleteBaseDir(index) {
     pyBridge.deleteBaseDirectory(index, function(response) {
         console.log(response);
         refreshBaseDirList();
-        refreshProjectList(); // Обновить список проектов после удаления базовой директории
+        refreshProjectList();
     });
 }
 function setCurrentBaseDir(index) {
     pyBridge.setCurrentBaseDirectory(index, function(response) {
         console.log(response);
-        refreshProjectList(); // Обновить список проектов для новой базовой директории
+        refreshProjectList();
         showSection('projectListSection');
         document.getElementById("currentBaseDirName").textContent = currentBaseDir;
 });
@@ -88,7 +88,7 @@ function setCurrentBaseDir(index) {
 
 function refreshProjectList() {
     pyBridge.listProjects(function(response) {
-        console.log("JS: Ответ от listProjects:", response); // <--- Добавлено для отладки
+        console.log("JS: Ответ от listProjects:", response);
         var projects = JSON.parse(response);
         if (projects === null) {
             projects = [];
@@ -393,25 +393,26 @@ updateFileList("subsList", content.subs, 'subs');
 }
 
 function updateFileList(listId, files, folderType) {
-var listElem = document.getElementById(listId);
-listElem.innerHTML = "";
-if (files && files.length > 0) {
-    files.sort();
-files.forEach(function(file) {
-var li = document.createElement("li");
-li.className = "file-item";
-li.textContent = file;
-li.draggable = true;
-li.dataset.file = file;
-li.dataset.folderType = folderType;
-li.addEventListener('dragstart', dragStart);
-listElem.appendChild(li);
-});
-} else {
-var li = document.createElement("li");
-li.textContent = "Нет файлов.";
-listElem.appendChild(li);
-}
+    var listElem = document.getElementById(listId);
+    listElem.innerHTML = "";
+    if (files && files.length > 0) {
+        files.sort((a, b) => a.name.localeCompare(b.name));
+        files.forEach(function(fileObj) {
+            var li = document.createElement("li");
+            li.className = "file-item";
+            li.textContent = fileObj.name;
+            li.draggable = true;
+            li.dataset.file = fileObj.name;
+            li.dataset.folderType = folderType;
+            li.dataset.fullpath = fileObj.path;
+            li.addEventListener('dragstart', dragStart);
+            listElem.appendChild(li);
+        });
+    } else {
+        var li = document.createElement("li");
+        li.textContent = "Нет файлов.";
+        listElem.appendChild(li);
+    }
 }
 
 function openFolderForType(folderType) {
@@ -436,11 +437,12 @@ event.preventDefault();
 }
 
 function dragStart(event) {
-    draggedFileInfo = {
-        file: event.target.dataset.file,
-        sourceFolderType: event.target.dataset.folderType
-    };
-    event.dataTransfer.setData("text/plain", JSON.stringify(draggedFileInfo));
+    var fullpath = event.target.dataset.fullpath;
+    if (fullpath) {
+        var url = "file:///" + fullpath.replace(/\\/g, '/');
+        event.dataTransfer.setData("text/uri-list", url);
+        event.dataTransfer.setData("text/plain", fullpath);
+    }
 }
 
 
