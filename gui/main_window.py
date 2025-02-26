@@ -9,7 +9,7 @@ from gui.webengine import MyWebEngineView
 from gui.update_dialog import UpdateDialog
 
 GITHUB_API_URL = "https://api.github.com/repos/Floriddd/PMReaper/releases/latest"
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 class MainWindow(QMainWindow):
     def __init__(self, bridge, *args, **kwargs):
@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
         self.init_tray_icon()
         self.show()
         self.check_for_updates(on_startup=True)
+
+        self.bridge.filesChanged.connect(self.updateFiles)
 
     def init_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
@@ -104,3 +106,6 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Ошибка обновления", f"Ошибка при проверке обновлений: {e}")
         except Exception as e:
             QMessageBox.critical(self, "Ошибка обновления", f"Неизвестная ошибка при проверке обновлений: {e}")
+
+    def updateFiles(self):
+        self.view.page().runJavaScript("updateRightPanel(currentSeason, currentEpisode);")

@@ -17,7 +17,7 @@ class MyWebEngineView(QWebEngineView):
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-            print("dragEnterEvent: принимаем событие")
+            print("[DEBUG] dragEnterEvent: принимаем событие")
         else:
             event.ignore()
 
@@ -28,7 +28,7 @@ class MyWebEngineView(QWebEngineView):
             event.ignore()
 
     def dropEvent(self, event: QDropEvent):
-        print("Python: dropEvent: событие drop получено")
+        print("[DEBUG] Python: dropEvent: событие drop получено")
         event.acceptProposedAction()
         mimeData = event.mimeData()
         if mimeData.hasUrls():
@@ -62,7 +62,7 @@ class MyWebEngineView(QWebEngineView):
                     base_dir = self.bridge.base_dir
 
                     if not project_name or not season or not episode or not base_dir:
-                        print("Проект, сезон или эпизод не выбраны, или базовая директория не установлена.")
+                        print("[DEBUG] Проект, сезон или эпизод не выбраны, или базовая директория не установлена.")
                         return
 
                     project_path = os.path.join(base_dir, project_name)
@@ -72,7 +72,7 @@ class MyWebEngineView(QWebEngineView):
                     target_folder_name = target_folder_map.get(target_folder_type)
 
                     if not target_folder_name:
-                        print("Неверный тип папки:", target_folder_type)
+                        print("[DEBUG] Неверный тип папки:", target_folder_type)
                         return
 
                     for file_path in files:
@@ -80,8 +80,8 @@ class MyWebEngineView(QWebEngineView):
                         dest_path = os.path.join(project_path, target_folder_name, season_folder, episode_folder, filename)
                         copy_file(file_path, dest_path)
                 else:
-                    print("Неверная зона для Drop")
+                    print("[DEBUG] Неверная зона для Drop")
 
             self.page().runJavaScript(get_folder_type_js, handle_js_result)
         else:
-            print("В dropEvent нет URL")
+            print("[DEBUG] В dropEvent нет URL")
