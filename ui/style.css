@@ -1,7 +1,7 @@
 body {
     color: #b1b1b6;
     font-family: Arial, sans-serif;
-    padding: 20px;
+    margin: 20px;
     background-color: #121212;
 }
 
@@ -9,8 +9,8 @@ body {
     background-color: #141414;
     border: 1px solid #1f1f1f;
     padding: 15px;
-    margin-bottom: 20px;
     border-radius: 5px;
+    transition: all 0.3s ease;
 }
 
 .hidden {
@@ -96,7 +96,18 @@ li {
     gap: 20px;
 }
 h2,h3,p {
-    margin-top: 0;
+    margin: 0;
+}
+button.menu {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 25px;
+}
+hr {
+    background-color: #2a2a2a;
+    border: none;
+    height: 1px;
 }
 .main-right {
     margin-right: 31px;
@@ -104,23 +115,151 @@ h2,h3,p {
 .main-right .section {
     padding: 10px;
 }
-
-.wide {
-    width: 100%;
-}
 .header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+ul {
+    margin: 0;
+    margin-top: 10px;
+}
 .file-list li {
     cursor: grab;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
+/* Style for the item being dragged */
 .file-list li.dragged {
     opacity: 0.5;
+    background-color: #333;
+    box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.3);
 }
+
+/* Стиль для зоны drop, когда элемент находится над ней */
+.file-list.drop-target {
+    background-color: rgba(65, 105, 225, 0.2) !important;
+    border: 2px dashed #4169e1 !important;
+    border-radius: 4px;
+    min-height: 60px;
+    margin: -2px; /* Компенсация для border */
+    animation: pulse 1.5s infinite;
+}
+
+/* Улучшенный стиль для родительского контейнера зон перетаскивания */
+.section.drop-target-container {
+    background-color: #1a1a2e !important;
+    border: 2px dashed #4169e1 !important;
+    box-shadow: 0 0 15px rgba(65, 105, 225, 0.5);
+    transition: all 0.2s ease;
+}
+
+.section[data-highlight-type="raws"] {
+    border-color: #e14169 !important; /* Красный для raw файлов */
+    background-color: rgba(225, 65, 105, 0.1) !important;
+    box-shadow: 0 0 15px rgba(225, 65, 105, 0.5);
+}
+
+.section[data-highlight-type="roads"] {
+    border-color: #41e169 !important; /* Зеленый для roads */
+    background-color: rgba(65, 225, 105, 0.1) !important;
+    box-shadow: 0 0 15px rgba(65, 225, 105, 0.5);
+}
+
+.section[data-highlight-type="voice"] {
+    border-color: #e1c941 !important; /* Желтый для voice */
+    background-color: rgba(225, 201, 65, 0.1) !important;
+    box-shadow: 0 0 15px rgba(225, 201, 65, 0.5);
+}
+
+.section[data-highlight-type="subs"] {
+    border-color: #41c9e1 !important; /* Синий для subs */
+    background-color: rgba(65, 201, 225, 0.1) !important;
+    box-shadow: 0 0 15px rgba(65, 201, 225, 0.5);
+}
+
+/* Эффект пульсации для улучшения видимости */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(65, 105, 225, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(65, 105, 225, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(65, 105, 225, 0);
+    }
+}
+
 .base-dir-list li {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+}
+
+.gridpar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 13px;
+}
+
+.divdirs {
+    grid-column: span 4 / span 4;
+}
+
+.divraws {
+    grid-column: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 2;
+}
+
+.divouts {
+    grid-column: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 3;
+}
+
+.divsurs {
+    grid-column: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 4;
+}
+
+.divsubs {
+    grid-column: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 5;
+}
+
+.divmain {
+    grid-column: span 2 / span 2;
+    grid-row: span 4 / span 4;
+    grid-column-start: 1;
+    grid-row-start: 2;
+}
+
+/* Hover effects for draggable items */
+.file-item:hover {
+    background-color: #2a2a2a;
+}
+
+/* Add file type indicators */
+.file-list li::before {
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+/* Add visual indicator that an item is draggable */
+.file-list li.file-item {
+    display: flex;
+    align-items: center;
+}
+
+.file-list li.file-item::after {
+    content: "⦿";
+    font-size: 10px;
+    margin-left: auto;
+    opacity: 0.5;
 }

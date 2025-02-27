@@ -1,6 +1,7 @@
 import os
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import Qt
+from PyQt6.QtWebEngineCore import QWebEngineSettings
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QDragMoveEvent
 from utils.file_ops import copy_file
 
@@ -13,6 +14,7 @@ class MyWebEngineView(QWebEngineView):
         self.setAcceptDrops(True)
         self.setAttribute(Qt.WidgetAttribute.WA_AcceptDrops, True)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.page().settings().setAttribute(QWebEngineSettings.WebAttribute(13), True)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
