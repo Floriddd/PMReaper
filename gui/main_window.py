@@ -7,9 +7,10 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWebChannel import QWebChannel
 from gui.webengine import MyWebEngineView
 from gui.update_dialog import UpdateDialog
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 GITHUB_API_URL = "https://api.github.com/repos/Floriddd/PMReaper/releases/latest"
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 
 class MainWindow(QMainWindow):
     def __init__(self, bridge, *args, **kwargs):
@@ -38,6 +39,14 @@ class MainWindow(QMainWindow):
         self.check_for_updates(on_startup=True)
 
         self.bridge.filesChanged.connect(self.updateFiles)
+
+        self.devtools = QWebEngineView()
+        self.view.page().setDevToolsPage(self.devtools.page())
+
+    def keyPressEvent(self, event):
+        """Открываем DevTools по F12"""
+        if event.key() == Qt.Key.Key_F12:
+            self.devtools.show()
 
     def init_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)

@@ -7,29 +7,33 @@
         <link rel="icon" type="image/x-icon" href="favicon.ico">
     </head>
     <body>
-        <div class="container">
-            <div id="baseDirSection" class="section">
-                <p>v1.2.2 by FlorkA</p>
+        <div class="container gridpar">
+            <div id="baseDirSection" class="section divdirs">
                 <div class="header-row">
-                    <h2>Базовые директории</h2>
-                    <div id="addBaseDirUI" >
+                    <button class="menu">☰</button>
+                    <div id="addBaseDirUI" class="header-row">
+                        <h3 style="margin-right: 10px">Базовые директории</h3>
                         <input type="text" id="newBaseDir" class="base-dir-input" placeholder="C:\Projects">
                         <button onclick="addBaseDir()">➕</button>
+                        <button onclick="browseBaseDir()">📂</button>
                     </div>
-                    <button onclick="browseBaseDir()">📂</button>
+                    <p>v1.3.0 by FlorkA</p>
                 </div>
+                <hr>
+
                 <ul id="baseDirList" class="base-dir-list">
                 </ul>
             </div>
-             <div id="selectProjectDirSection" class="section hidden">
-                <h2>Текущая директория: <span id="currentBaseDirName"></span></h2>
-                <button onclick="backToBaseDirList()">⬅️</button>
-            </div>
-            <div class="main-container">
+            <div class="divmain">
+                <div id="selectProjectDirSection" class="section hidden">
+                    <h2>Текущая директория: <span id="currentBaseDirName"></span></h2>
+                    <button onclick="backToBaseDirList()">⬅️</button>
+                </div>
                 <div class="main">
                     <div id="projectListSection" class="section hidden">
                         <h2>Список проектов</h2>
                         <ul id="projectList"></ul>
+                        <hr>
                         <h3>Создать новый проект</h3>
                         <input type="text" id="newProjectName"
                             placeholder="Название проекта">
@@ -39,57 +43,72 @@
                     <div id="projectDetailSection" class="section hidden">
                         <button onclick="backToProjects()">⬅️</button>
                         <h2>Проект: <span id="currentProjectName"></span></h2>
+                        <div class="project-actions">
+                            <button onclick="convertProjectStructure(currentProject)" class="convert-btn">🔄 Конвертировать структуру на новую</button>
+                        </div>
                         <div id="treeContainer">
                         </div>
                         <button onclick="addSeason()">+ Добавить сезон</button>
                     </div>
                 </div>
-                <div class="main-right">
-                    <div class="section wide">
-                        <div class="header-row">
-                            <h3>Равки</h3>
-                            <button
-                                onclick="openFolderForType('raws')">📂</button>
-                        </div>
-                        <ul id="rawsList" class="file-list main-file-list"
-                            ondrop="drop(event, 'raws')"
-                            ondragover="allowDrop(event)"></ul>
-                    </div>
-                    <div class="section wide">
-                        <div class="header-row">
-                            <h3>Делённые дороги</h3>
-                            <button
-                                onclick="openFolderForType('roads')">📂</button>
-                        </div>
-                        <ul id="roadsList" class="file-list main-file-list"
-                            ondrop="drop(event, 'roads')"
-                            ondragover="allowDrop(event)"></ul>
-                    </div>
-                    <div class="section wide">
-                        <div class="header-row">
-                            <h3>Озвучка</h3>
-                            <button
-                                onclick="openFolderForType('voice')">📂</button>
-                        </div>
-                        <ul id="voiceList" class="file-list main-file-list"
-                            ondrop="drop(event, 'voice')"
-                            ondragover="allowDrop(event)"></ul>
-                    </div>
-                    <div class="section wide">
-                        <div class="header-row">
-                            <h3>Субтитры</h3>
-                            <button
-                                onclick="openFolderForType('subs')">📂</button>
-                        </div>
-                        <ul id="subsList" class="file-list main-file-list"
-                            ondrop="drop(event, 'subs')"
-                            ondragover="allowDrop(event)"></ul>
-                    </div>
+            </div>
+
+            <div class="section divraws">
+                <div class="header-row">
+                    <h3>Равки</h3>
+                    <button onclick="openFolderForType('raws')">📂</button>
                 </div>
+                <ul id="rawsList" class="file-list main-file-list"
+                    ondrop="drop(event, 'raws')"
+                    ondragover="allowDrop(event)"
+                    ondragenter="dragEnter(event)"
+                    ondragleave="dragLeave(event)">
+                </ul>
+            </div>
+            <div class="section divouts">
+                <div class="header-row">
+                    <h3>Делённые дороги</h3>
+                    <button onclick="openFolderForType('roads')">📂</button>
+                </div>
+                <ul id="roadsList" class="file-list main-file-list"
+                    ondrop="drop(event, 'roads')"
+                    ondragover="allowDrop(event)"
+                    ondragenter="dragEnter(event)"
+                    ondragleave="dragLeave(event)">
+                </ul>
+            </div>
+            <div class="section divsurs">
+                <div class="header-row">
+                    <h3>Озвучка</h3>
+                    <button onclick="openFolderForType('voice')">📂</button>
+                </div>
+                <ul id="voiceList" class="file-list main-file-list"
+                    ondrop="drop(event, 'voice')"
+                    ondragover="allowDrop(event)"
+                    ondragenter="dragEnter(event)"
+                    ondragleave="dragLeave(event)">
+                </ul>
+            </div>
+            <div class="section divsubs">
+                <div class="header-row">
+                    <h3>Субтитры</h3>
+                    <button onclick="openFolderForType('subs')">📂</button>
+                </div>
+                <ul id="subsList" class="file-list main-file-list"
+                    ondrop="drop(event, 'subs')"
+                    ondragover="allowDrop(event)"
+                    ondragenter="dragEnter(event)"
+                    ondragleave="dragLeave(event)">
+                </ul>
             </div>
         </div>
 
         <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <script src="script.js"></script>
+        <script src="js/app.js"></script>
+        <script src="js/ui-utils.js"></script>
+        <script src="js/bridge.js"></script>
+        <script src="js/projects.js"></script>
+        <script src="js/seasons-episodes.js"></script>
+        <script src="js/file-manager.js"></script>
     </body>
 </html>
