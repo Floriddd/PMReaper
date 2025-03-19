@@ -11,7 +11,7 @@ from gui.update_dialog import UpdateDialog
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 GITHUB_API_URL = "https://api.github.com/repos/Floriddd/PMReaper/releases/latest"
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 class MainWindow(QMainWindow):
     def __init__(self, bridge, *args, **kwargs):
