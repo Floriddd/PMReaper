@@ -1,4 +1,4 @@
-// Файл seasons-episodes.js - работа с сезонами и эпизодами
+
 
 function refreshTree() {
     pyBridge.listEpisodes(currentProject, function(response) {
@@ -98,7 +98,6 @@ function addSeason() {
     var seasons = Object.keys(episodesData).map(Number);
     var nextSeason = seasons.length > 0 ? Math.max(...seasons) + 1 : 1;
     pyBridge.addSeason(currentProject, nextSeason, function(response) {
-        console.log(response);
         refreshTree();
     });
 }
@@ -107,21 +106,18 @@ function addEpisode(season) {
     var eps = episodesData[season] || [];
     var nextEpisode = eps.length > 0 ? Math.max(...eps) + 1 : 1;
     pyBridge.addEpisode(currentProject, season, nextEpisode, function(response) {
-        console.log(response);
         refreshTree();
     });
 }
 
 function deleteEpisode(season, episode) {
     pyBridge.deleteEpisode(currentProject, season, episode, function(response) {
-        console.log(response);
         refreshTree();
     });
 }
 
 function deleteSeason(season) {
     pyBridge.deleteSeason(currentProject, season, function(response) {
-        console.log(response);
         refreshTree();
     });
 }
@@ -129,19 +125,16 @@ function deleteSeason(season) {
 function openEpisodeFolder(season, episode) {
     pyBridge.openEpisodeFolder(currentProject, season, episode, function(response) {
         currentSeason = season;
-        console.log(response);
     });
 }
 
 function openSeasonFolder(season) {
     pyBridge.openSeasonFolder(currentProject, season, function(response) {
-        console.log(response);
     });
 }
 
 function openProjectFile(season, episode) {
     pyBridge.openProjectFile(currentProject, season, episode, function(response) {
-        console.log(response);
     });
 }
 
@@ -159,11 +152,9 @@ function toggleSeasonEdit(oldSeason, seasonDiv) {
         saveBtn.onclick = function() {
             var newSeason = parseInt(input.value);
             if (isNaN(newSeason) || newSeason <= 0) {
-                console.log("Неверный номер сезона");
                 return;
             }
             pyBridge.renameSeason(currentProject, oldSeason, newSeason, function(response) {
-                console.log(response);
                 refreshTree();
             });
         };
@@ -189,11 +180,9 @@ function toggleEpisodeEdit(season, oldEpisode, li) {
         saveBtn.onclick = function() {
             var newEpisode = parseInt(input.value);
             if (isNaN(newEpisode) || newEpisode <= 0) {
-                console.log("Неверный номер эпизода");
                 return;
             }
             pyBridge.renameEpisode(currentProject, season, oldEpisode, newEpisode, function(response) {
-                console.log(response);
                 refreshTree();
             });
         };

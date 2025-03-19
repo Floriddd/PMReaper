@@ -76,21 +76,78 @@ class Bridge(QObject):
             "base_directories": base_directories,
             "current_base_directory_index": current_base_directory_index,
         }
+
+        if os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    existing_config = json.load(f)
+                    if "settings" in existing_config:
+                        config["settings"] = existing_config["settings"]
+            except Exception as e:
+                print("[DEBUG] Ошибка при загрузке существующей конфигурации:", e)
+        
         try:
             with open(self.config_path, "w", encoding="utf-8") as f:
-                json.dump(config, f)
+                json.dump(config, f, ensure_ascii=False, indent=4)
+            print("[DEBUG] Конфигурация сохранена.")
+            return True
         except Exception as e:
             print("[DEBUG] Ошибка сохранения конфигурации:", e)
-
+            return False
+            
     @pyqtSlot(str, result=str)
-    def setBaseDirectory(self, path):
-        if os.path.exists(path) and os.path.isdir(path):
-            self.base_directories = [path]
-            self.current_base_directory_index = 0
-            self.saveConfig()
-            return "[DEBUG] Базовая директория установлена успешно."
+    def loadSettings(self, callback):
+        """
+        Загружает настройки приложения из файла конфигурации
+        """
+        print("[DEBUG] Загрузка настроек приложения")
+        
+        settings_json = "{}"
+        if os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    settings = config.get("settings", {})
+                    print(f"[DEBUG] Загружены настройки: {settings}")
+                    settings_json = json.dumps(settings)
+            except Exception as e:
+                print("[DEBUG] Ошибка загрузки настроек:", e)
         else:
-            return "[DEBUG] Неверный путь. Папка не существует."
+            print("[DEBUG] Файл конфигурации не найден при загрузке настроек")
+        return settings_json
+    
+    @pyqtSlot(str, result=bool)
+    def saveSettings(self, settings_json):
+        """
+        Сохраняет настройки приложения в файл конфигурации
+        """
+        print(f"[DEBUG] Сохранение настроек приложения: {settings_json}")
+        
+        try:
+            settings = json.loads(settings_json)
+            config = {}
+            if os.path.exists(self.config_path):
+                try:
+                    with open(self.config_path, "r", encoding="utf-8") as f:
+                        config = json.load(f)
+                except Exception as e:
+                    print("[DEBUG] Ошибка при загрузке существующей конфигурации:", e)
+
+            config["settings"] = settings
+
+            if "base_directories" not in config:
+                config["base_directories"] = self.base_directories
+            if "current_base_directory_index" not in config:
+                config["current_base_directory_index"] = self.current_base_directory_index
+
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=4)
+            
+            print("[DEBUG] Настройки приложения сохранены")
+            return True
+        except Exception as e:
+            print(f"[DEBUG] Ошибка сохранения настроек: {e}")
+            return False
 
     @pyqtSlot(result=str)
     def browseDirectory(self):
@@ -179,6 +236,16 @@ class Bridge(QObject):
             return f"[DEBUG] Ошибка при удалении проекта: {str(e)}"
 
     @pyqtSlot(str, result=str)
+    def setBaseDirectory(self, path):
+        if os.path.exists(path) and os.path.isdir(path):
+            self.base_directories = [path]
+            self.current_base_directory_index = 0
+            self.saveConfig()
+            return "[DEBUG] Базовая директория установлена успешно."
+        else:
+            return "[DEBUG] Неверный путь. Папка не существует."
+
+    @pyqtSlot(str, result=str)
     def listEpisodes(self, projectName):
         episodes = {}
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -203,7 +270,7 @@ class Bridge(QObject):
                         if os.path.isdir(ep_path) and ep_item.startswith(item + "-E"):
                             try:
                                 episode_num = int(ep_item.split("-E")[1])
-                                if os.path.exists(os.path.join(ep_path, "reaper")):  # Проверяем наличие папки reaper
+                                if os.path.exists(os.path.join(ep_path, "reaper")):
                                     episodes[str(season_num)].append(episode_num)
                             except:
                                 continue
@@ -247,12 +314,10 @@ class Bridge(QObject):
             return "[DEBUG] Эпизод уже существует."
 
         try:
-            # Создаем структуру папок для эпизода
             os.makedirs(episode_path, exist_ok=True)
             for d in ["reaper", "source", "outs", "raws", "subs"]:
                 os.makedirs(os.path.join(episode_path, d), exist_ok=True)
 
-            # Создаем файл проекта
             rpp_filename = f"{projectName}_{episode_folder}.rpp"
             rpp_filepath = os.path.join(episode_path, "reaper", rpp_filename)
 
@@ -266,7 +331,6 @@ class Bridge(QObject):
         except Exception as e:
             return f"[DEBUG] Ошибка при добавлении эпизода: {str(e)}"
 
-    # Измененная функция find_last_rpp
     def find_last_rpp(self, project_path, season, episode):
         for s in range(season, 0, -1):
             season_folder = f"S{s:02d}"
@@ -282,7 +346,6 @@ class Bridge(QObject):
                             return rpp_path
         return None
 
-    # Измененная функция deleteEpisode
     @pyqtSlot(str, int, int, result=str)
     def deleteEpisode(self, projectName, season, episode):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -300,7 +363,6 @@ class Bridge(QObject):
                 return f"Ошибка при удалении эпизода: {str(e)}"
         return "Эпизод не найден."
 
-    # Измененная функция deleteSeason
     @pyqtSlot(str, int, result=str)
     def deleteSeason(self, projectName, season):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -317,7 +379,6 @@ class Bridge(QObject):
                 return f"[DEBUG] Ошибка при удалении сезона: {str(e)}"
         return "[DEBUG] Сезон не найден."
 
-    # Измененная функция openEpisodeFolder
     @pyqtSlot(str, int, int, result=str)
     def openEpisodeFolder(self, projectName, season, episode):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -335,7 +396,6 @@ class Bridge(QObject):
         except Exception as e:
             return f"[DEBUG] Ошибка при открытии папки эпизода: {str(e)}"
 
-    # Измененная функция openSeasonFolder
     @pyqtSlot(str, int, result=str)
     def openSeasonFolder(self, projectName, season):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -352,7 +412,6 @@ class Bridge(QObject):
         except Exception as e:
             return f"[DEBUG] Ошибка при открытии папки сезона: {str(e)}"
 
-    # Измененная функция openProjectFile
     @pyqtSlot(str, int, int, result=str)
     def openProjectFile(self, projectName, season, episode):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -371,7 +430,6 @@ class Bridge(QObject):
         except Exception as e:
             return f"[DEBUG] Ошибка при открытии файла проекта: {str(e)}"
 
-    # Измененная функция renameSeason - логика та же, просто путь отличается
     @pyqtSlot(str, int, int, int, result=str)
     def renameSeason(self, projectName, oldSeason, newSeason):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -393,7 +451,6 @@ class Bridge(QObject):
         try:
             os.rename(old_path, new_path)
 
-            # Переименование эпизодных папок внутри сезона
             for item in os.listdir(new_path):
                 if item.startswith(old_season_folder + "-E"):
                     old_ep_path = os.path.join(new_path, item)
@@ -401,7 +458,6 @@ class Bridge(QObject):
                     new_ep_path = os.path.join(new_path, new_ep_name)
                     os.rename(old_ep_path, new_ep_path)
 
-                    # Переименование файлов проекта внутри каждого эпизода
                     reaper_folder = os.path.join(new_ep_path, "reaper")
                     if os.path.exists(reaper_folder):
                         for file in os.listdir(reaper_folder):
@@ -415,7 +471,6 @@ class Bridge(QObject):
 
         return "[DEBUG] Сезон переименован."
 
-    # Измененная функция renameEpisode
     @pyqtSlot(str, int, int, int, result=str)
     def renameEpisode(self, projectName, season, oldEpisode, newEpisode):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -436,7 +491,6 @@ class Bridge(QObject):
         try:
             os.rename(old_path, new_path)
 
-            # Переименование файла проекта внутри эпизода
             reaper_folder = os.path.join(new_path, "reaper")
             if os.path.exists(reaper_folder):
                 for file in os.listdir(reaper_folder):
@@ -450,7 +504,6 @@ class Bridge(QObject):
 
         return "[DEBUG] Эпизод переименован."
 
-    # Измененная функция listFolderContent
     @pyqtSlot(str, int, int, result=str)
     def listFolderContent(self, projectName, season, episode):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -495,14 +548,177 @@ class Bridge(QObject):
         folder_path = os.path.join(project_path, season_folder, episode_folder, folder_name)
         if not os.path.exists(folder_path):
             return "[DEBUG] Папка не найдена."
-
+            
         try:
             os.startfile(folder_path)
             return f"[DEBUG] Папка {folderType} открыта."
         except Exception as e:
             return f"[DEBUG] Ошибка при открытии папки {folderType}: {str(e)}"
 
-    # Измененная функция moveFileToFolder
+    @pyqtSlot(str, str, str, result=str)
+    def getFilesByType(self, projectName, season, episode):
+        """
+        Получает файлы из разных папок для отображения в правой панели
+        Используется в обновленном UI
+        """
+        print(f"[DEBUG] getFilesByType вызван для проекта: {projectName}, сезон: {season}, эпизод: {episode}")
+        
+        if not self.base_dir or not os.path.isdir(self.base_dir):
+            return json.dumps({})
+            
+        try:
+            season_num = int(season)
+            episode_num = int(episode)
+        except ValueError:
+            print(f"[DEBUG] Ошибка в getFilesByType: некорректный формат сезона/эпизода")
+            return json.dumps({})
+            
+        project_path = os.path.join(self.base_dir, projectName)
+        season_folder = f"S{season_num:02d}"
+        episode_folder = f"{season_folder}-E{episode_num:02d}"
+        episode_path = os.path.join(project_path, season_folder, episode_folder)
+        
+        if not os.path.exists(episode_path):
+            print(f"[DEBUG] Путь не существует: {episode_path}")
+            return json.dumps({})
+            
+        result = {
+            "raws": [],
+            "roads": [],
+            "voice": [],
+            "subs": []
+        }
+        
+        folder_mapping = {
+            "raws": "raws",
+            "roads": "outs",
+            "voice": "source",
+            "subs": "subs"
+        }
+        
+        for key, folder_name in folder_mapping.items():
+            folder_path = os.path.join(episode_path, folder_name)
+            if os.path.exists(folder_path):
+                try:
+                    for file_name in os.listdir(folder_path):
+                        file_path = os.path.join(folder_path, file_name)
+                        if os.path.isfile(file_path):
+                            result[key].append(file_path)
+                except Exception as e:
+                    print(f"[DEBUG] Ошибка при чтении папки {folder_path}: {e}")
+        
+        self.watch_folders(projectName, season_num, episode_num)
+        return json.dumps(result)
+        
+    @pyqtSlot(str, str, result=str)
+    def openFile(self, filePath):
+        """
+        Открывает файл в ассоциированной программе
+        """
+        if not os.path.exists(filePath):
+            print(f"[DEBUG] Файл не существует: {filePath}")
+            return "error"
+            
+        try:
+            os.startfile(filePath)
+            return "success"
+        except Exception as e:
+            print(f"[DEBUG] Ошибка при открытии файла: {e}")
+            return "error"
+            
+    @pyqtSlot(str, str, str, str, str, result=str)
+    def moveFile(self, sourcePath, targetType, projectName, season, episode):
+        """
+        Перемещает файл между папками
+        """
+        print(f"[DEBUG] moveFile: {sourcePath} -> {targetType}")
+        
+        if not os.path.exists(sourcePath):
+            return "error:file_not_exist"
+            
+        try:
+            season_num = int(season)
+            episode_num = int(episode)
+        except ValueError:
+            return "error:invalid_season_episode"
+            
+        folder_mapping = {
+            "raws": "raws",
+            "roads": "outs",
+            "voice": "source",
+            "subs": "subs"
+        }
+        
+        if targetType not in folder_mapping:
+            return "error:invalid_target_type"
+            
+        project_path = os.path.join(self.base_dir, projectName)
+        season_folder = f"S{season_num:02d}"
+        episode_folder = f"{season_folder}-E{episode_num:02d}"
+        
+        target_folder = os.path.join(project_path, season_folder, episode_folder, folder_mapping[targetType])
+        
+        if not os.path.exists(target_folder):
+            os.makedirs(target_folder, exist_ok=True)
+            
+        filename = os.path.basename(sourcePath)
+        target_path = os.path.join(target_folder, filename)
+        
+        try:
+            shutil.move(sourcePath, target_path)
+            self.filesChanged.emit()
+            return "success"
+        except Exception as e:
+            print(f"[DEBUG] Ошибка при перемещении файла: {e}")
+            return f"error:{str(e)}"
+    
+    @pyqtSlot(str, str)
+    def dragDropFile(self, filePath, targetType):
+        """
+        Обрабатывает перетаскивание файла из файловой системы
+        """
+        print(f"[DEBUG] dragDropFile: {filePath} -> {targetType}")
+        
+        if not self.current_project or not self.current_season or not self.current_episode:
+            print("[DEBUG] Не выбран проект, сезон или эпизод")
+            return
+            
+        folder_mapping = {
+            "raws": "raws",
+            "roads": "outs",
+            "voice": "source",
+            "subs": "subs"
+        }
+        
+        if targetType not in folder_mapping:
+            print(f"[DEBUG] Неверный тип папки: {targetType}")
+            return
+            
+        try:
+            season_num = int(self.current_season)
+            episode_num = int(self.current_episode)
+        except ValueError:
+            print("[DEBUG] Некорректный формат сезона/эпизода")
+            return
+            
+        project_path = os.path.join(self.base_dir, self.current_project)
+        season_folder = f"S{season_num:02d}"
+        episode_folder = f"{season_folder}-E{episode_num:02d}"
+        
+        target_folder = os.path.join(project_path, season_folder, episode_folder, folder_mapping[targetType])
+        
+        if not os.path.exists(target_folder):
+            os.makedirs(target_folder, exist_ok=True)
+            
+        filename = os.path.basename(filePath)
+        target_path = os.path.join(target_folder, filename)
+        
+        try:
+            shutil.move(filePath, target_path)
+            self.filesChanged.emit()
+        except Exception as e:
+            print(f"[DEBUG] Ошибка при перемещении файла: {e}")
+            
     @pyqtSlot(str, int, int, str, str, str, result=str)
     def moveFileToFolder(self, projectName, season, episode, sourceFolderType, targetFolderType, filename):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -514,7 +730,7 @@ class Bridge(QObject):
         folder_name_map = {"raws": "raws", "roads": "outs", "voice": "source", "subs": "subs"}
         source_folder_name = folder_name_map.get(sourceFolderType)
         target_folder_name = folder_name_map.get(targetFolderType)
-
+        
         if not source_folder_name or not target_folder_name:
             return "[DEBUG] Неверный тип папки."
 
@@ -524,14 +740,13 @@ class Bridge(QObject):
 
         if not os.path.exists(source_path):
             return "[DEBUG] Файл не найден в исходной папке."
-
+        
         try:
             shutil.move(source_path, target_path)
             return "[DEBUG] Файл перемещён."
         except Exception as e:
             return f"[DEBUG] Ошибка при перемещении файла: {str(e)}"
-
-    # Измененная функция uploadFileToFolder
+    
     @pyqtSlot(str, int, int, str, str, str, result=str)
     def uploadFileToFolder(self, projectName, season, episode, folderType, filePath, filename):
         if not self.base_dir or not os.path.isdir(self.base_dir):
@@ -548,19 +763,19 @@ class Bridge(QObject):
 
         episode_path = os.path.join(project_path, season_folder, episode_folder)
         target_path = os.path.join(episode_path, target_folder_name, filename)
-
+        
         if not os.path.exists(os.path.dirname(target_path)):
             return "[DEBUG] Папка назначения не найдена."
 
         if not os.path.exists(filePath):
             return "[DEBUG] Исходный файл не найден."
-
+        
         try:
             shutil.copy2(filePath, target_path)
             return "[DEBUG] Файл загружен."
         except Exception as e:
             return f"[DEBUG] Ошибка при загрузке файла: {str(e)}"
-
+            
     @pyqtSlot(str)
     def setCurrentProject(self, projectName):
         print("[DEBUG] setCurrentProject called with:", projectName)
@@ -614,7 +829,7 @@ class Bridge(QObject):
                                 episode_num = episode_folder_name.split("-E")[1]
                                 old_episode_path = os.path.join(season_path_old_struct, episode_folder_name)
                                 new_episode_path = os.path.join(project_path, season_folder_name, episode_folder_name,
-                                                                old_top_folder_name)  # Corrected new path
+                                                                old_top_folder_name)
                                 print(
                                     f"[DEBUG] Processing episode folder: {episode_folder_name} in {season_folder_name} of {old_top_folder_name}, new episode path: {new_episode_path}")
 
@@ -639,7 +854,6 @@ class Bridge(QObject):
                                     else:
                                         print(f"[DEBUG] Warning: {old_file_path} is not a file, skipping.")
 
-            # Move old top-level folders to _old folder
             old_folder = os.path.join(project_path, "_old")
             if not os.path.exists(old_folder):
                 os.makedirs(old_folder, exist_ok=True)

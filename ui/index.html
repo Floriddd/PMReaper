@@ -1,114 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
     <head>
         <meta charset="UTF-8">
-        <title>PMReaper (by FlorkA)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PMReaper</title>
         <link rel="stylesheet" type="text/css" href="style.css">
-        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <link rel="icon" type="image/svg+xml" href="favicon.svg">
     </head>
     <body>
         <div class="container gridpar">
             <div id="baseDirSection" class="section divdirs">
                 <div class="header-row">
-                    <button class="menu">☰</button>
-                    <div id="addBaseDirUI" class="header-row">
-                        <h3 style="margin-right: 10px">Базовые директории</h3>
-                        <input type="text" id="newBaseDir" class="base-dir-input" placeholder="C:\Projects">
-                        <button onclick="addBaseDir()">➕</button>
-                        <button onclick="browseBaseDir()">📂</button>
+                    <div class="header-left">
+                        <button class="menu tooltip" data-tooltip="Меню">☰</button>
+                        <h3>Базовые директории</h3>
                     </div>
-                    <p>v1.3.0 by FlorkA</p>
+                    <div id="addBaseDirUI" class="input-group">
+                        <input type="text" id="newBaseDir" class="base-dir-input" placeholder="C:\Projects">
+                        <button onclick="addBaseDir()" class="tooltip" data-tooltip="Добавить директорию">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                        <button onclick="browseBaseDir()" class="tooltip" data-tooltip="Обзор">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="version-tag">v1.4.0</span>
                 </div>
                 <hr>
 
                 <ul id="baseDirList" class="base-dir-list">
+                    <!-- Базовые директории будут добавлены динамически -->
                 </ul>
             </div>
+            
             <div class="divmain">
                 <div id="selectProjectDirSection" class="section hidden">
-                    <h2>Текущая директория: <span id="currentBaseDirName"></span></h2>
-                    <button onclick="backToBaseDirList()">⬅️</button>
+                    <div class="header-row">
+                        <button onclick="backToBaseDirList()" class="tooltip" data-tooltip="Назад">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <h2>Текущая директория: <span id="currentBaseDirName"></span></h2>
+                    </div>
                 </div>
+                
                 <div class="main">
                     <div id="projectListSection" class="section hidden">
                         <h2>Список проектов</h2>
-                        <ul id="projectList"></ul>
+                        <ul id="projectList" class="project-list">
+                            <!-- Проекты будут добавлены динамически -->
+                        </ul>
                         <hr>
-                        <h3>Создать новый проект</h3>
-                        <input type="text" id="newProjectName"
-                            placeholder="Название проекта">
-                        <button onclick="createProject()">Создать
-                            проект</button>
+                        
+                        <div class="input-group">
+                            <h3>Создать новый проект</h3>
+                            <input type="text" id="newProjectName" placeholder="Название проекта">
+                            <button onclick="createProject()" class="primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Создать проект
+                            </button>
+                        </div>
                     </div>
+                    
                     <div id="projectDetailSection" class="section hidden">
-                        <button onclick="backToProjects()">⬅️</button>
-                        <h2>Проект: <span id="currentProjectName"></span></h2>
-                        <div class="project-actions">
-                            <button onclick="convertProjectStructure(currentProject)" class="convert-btn">🔄 Конвертировать структуру на новую</button>
+                        <div class="header-row">
+                            <button onclick="backToProjects()" class="tooltip" data-tooltip="Назад к проектам">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                            </button>
+                            <h2>Проект: <span id="currentProjectName"></span></h2>
                         </div>
-                        <div id="treeContainer">
+                        
+                        <div id="treeContainer" class="seasons-container">
+                            <!-- Сезоны и эпизоды будут добавлены динамически -->
                         </div>
-                        <button onclick="addSeason()">+ Добавить сезон</button>
+                        
+                        <button onclick="addSeason()" class="primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Добавить сезон
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="section divraws">
-                <div class="header-row">
-                    <h3>Равки</h3>
-                    <button onclick="openFolderForType('raws')">📂</button>
+            <div class="files-container">
+                <div class="section divraws">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <h3>Равки</h3>
+                            <span class="file-counter" id="rawsCounter">0 файлов</span>
+                        </div>
+                        <button onclick="openFolderForType('raws')" class="tooltip" data-tooltip="Открыть папку">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="rawsList" class="file-list main-file-list">
+                        <!-- Файлы будут добавлены динамически -->
+                    </ul>
                 </div>
-                <ul id="rawsList" class="file-list main-file-list"
-                    ondrop="drop(event, 'raws')"
-                    ondragover="allowDrop(event)"
-                    ondragenter="dragEnter(event)"
-                    ondragleave="dragLeave(event)">
-                </ul>
-            </div>
-            <div class="section divouts">
-                <div class="header-row">
-                    <h3>Делённые дороги</h3>
-                    <button onclick="openFolderForType('roads')">📂</button>
+                
+                <div class="section divouts">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <h3>Делённые дороги</h3>
+                            <span class="file-counter" id="roadsCounter">0 файлов</span>
+                        </div>
+                        <button onclick="openFolderForType('roads')" class="tooltip" data-tooltip="Открыть папку">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="roadsList" class="file-list main-file-list">
+                        <!-- Файлы будут добавлены динамически -->
+                    </ul>
                 </div>
-                <ul id="roadsList" class="file-list main-file-list"
-                    ondrop="drop(event, 'roads')"
-                    ondragover="allowDrop(event)"
-                    ondragenter="dragEnter(event)"
-                    ondragleave="dragLeave(event)">
-                </ul>
-            </div>
-            <div class="section divsurs">
-                <div class="header-row">
-                    <h3>Озвучка</h3>
-                    <button onclick="openFolderForType('voice')">📂</button>
+                
+                <div class="section divsurs">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <h3>Озвучка</h3>
+                            <span class="file-counter" id="voiceCounter">0 файлов</span>
+                        </div>
+                        <button onclick="openFolderForType('voice')" class="tooltip" data-tooltip="Открыть папку">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="voiceList" class="file-list main-file-list">
+                        <!-- Файлы будут добавлены динамически -->
+                    </ul>
                 </div>
-                <ul id="voiceList" class="file-list main-file-list"
-                    ondrop="drop(event, 'voice')"
-                    ondragover="allowDrop(event)"
-                    ondragenter="dragEnter(event)"
-                    ondragleave="dragLeave(event)">
-                </ul>
-            </div>
-            <div class="section divsubs">
-                <div class="header-row">
-                    <h3>Субтитры</h3>
-                    <button onclick="openFolderForType('subs')">📂</button>
+                
+                <div class="section divsubs">
+                    <div class="header-row">
+                        <div class="header-left">
+                            <h3>Субтитры</h3>
+                            <span class="file-counter" id="subsCounter">0 файлов</span>
+                        </div>
+                        <button onclick="openFolderForType('subs')" class="tooltip" data-tooltip="Открыть папку">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <ul id="subsList" class="file-list main-file-list">
+                        <!-- Файлы будут добавлены динамически -->
+                    </ul>
                 </div>
-                <ul id="subsList" class="file-list main-file-list"
-                    ondrop="drop(event, 'subs')"
-                    ondragover="allowDrop(event)"
-                    ondragenter="dragEnter(event)"
-                    ondragleave="dragLeave(event)">
-                </ul>
             </div>
         </div>
 
+        <!-- Модальное окно для настроек -->
+        <div id="settingsModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Настройки</h3>
+                    <button onclick="closeSettingsModal()" class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-group">
+                        <h4>Внешний вид</h4>
+                        <div class="settings-item">
+                            <label for="themeSelector">Тема:</label>
+                            <select id="themeSelector">
+                                <option value="dark">Тёмная</option>
+                                <option value="light">Светлая</option>
+                                <option value="system">Системная</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <h4>О программе</h4>
+                        <p>PMReaper версия 1.4.0</p>
+                        <p>Разработчик: FlorkA</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="saveSettings()" class="primary">Сохранить</button>
+                    <button onclick="closeSettingsModal()">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно подтверждения -->
+        <div id="confirmModal" class="modal hidden">
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h3 id="confirmTitle">Подтверждение</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage">Вы уверены?</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirmYes" class="danger">Да</button>
+                    <button id="confirmNo">Нет</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Тост-уведомления -->
+        <div id="toastContainer" class="toast-container"></div>
+
         <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <script src="js/app.js"></script>
+        <script src="script.js"></script>
         <script src="js/ui-utils.js"></script>
-        <script src="js/bridge.js"></script>
-        <script src="js/projects.js"></script>
-        <script src="js/seasons-episodes.js"></script>
         <script src="js/file-manager.js"></script>
+        <script src="js/settings.js"></script>
+        <script src="js/improved-drag-drop.js"></script>
+        <script src="js/direct-menu-fix.js"></script>
     </body>
 </html>

@@ -382,37 +382,103 @@ function selectEpisode(season, episode, liElement) {
 
 
 function updateRightPanel(season, episode) {
-    pyBridge.listFolderContent(currentProject, season, episode, function(response) {
-        var content = JSON.parse(response);
-        console.log("Обновление файлов:", content);
-        updateFileList("rawsList", content.raws, 'raws');
-        updateFileList("roadsList", content.roads, 'roads');
-        updateFileList("voiceList", content.voice, 'voice');
-        updateFileList("subsList", content.subs, 'subs');
+    if (!season || !episode || !currentProject) {
+        return;
+    }
+    
+    console.log(`Запрос файлов для проекта: ${currentProject}, сезон: ${season}, эпизод: ${episode}`);
+    
+    // Используем новую функцию getFilesByType из моста
+    pyBridge.getFilesByType(currentProject, season, episode, function(filesByType) {
+        console.log("Получены файлы:", filesByType);
+        
+        try {
+            // Парсим JSON, если это строка
+            const files = typeof filesByType === 'string' ? JSON.parse(filesByType) : filesByType;
+            
+            // Обновляем списки файлов
+            updateFileList('rawsList', files.raws || [], 'raws');
+            updateFileList('roadsList', files.roads || [], 'roads');
+            updateFileList('voiceList', files.voice || [], 'voice');
+            updateFileList('subsList', files.subs || [], 'subs');
+            
+            // Обновляем счетчики файлов
+            const rawsCounter = document.getElementById('rawsCounter');
+            if (rawsCounter) rawsCounter.textContent = `${files.raws ? files.raws.length : 0} файлов`;
+            
+            const roadsCounter = document.getElementById('roadsCounter');
+            if (roadsCounter) roadsCounter.textContent = `${files.roads ? files.roads.length : 0} файлов`;
+            
+            const voiceCounter = document.getElementById('voiceCounter');
+            if (voiceCounter) voiceCounter.textContent = `${files.voice ? files.voice.length : 0} файлов`;
+            
+            const subsCounter = document.getElementById('subsCounter');
+            if (subsCounter) subsCounter.textContent = `${files.subs ? files.subs.length : 0} файлов`;
+            
+            console.log("Панель обновлена успешно");
+        } catch (error) {
+            console.error("Ошибка при обработке данных:", error);
+        }
     });
 }
 
 function updateFileList(listId, files, folderType) {
     var listElem = document.getElementById(listId);
     listElem.innerHTML = "";
-    if (files && files.length > 0) {
-        files.sort((a, b) => a.name.localeCompare(b.name));
-        files.forEach(function(fileObj) {
-            var li = document.createElement("li");
-            li.className = "file-item";
-            li.textContent = fileObj.name;
-            li.draggable = true;
-            li.dataset.file = fileObj.name;
-            li.dataset.folderType = folderType;
-            li.dataset.fullpath = fileObj.path;
-            li.addEventListener('dragstart', dragStart);
-            listElem.appendChild(li);
-        });
-    } else {
+    
+    if (!files || files.length === 0) {
         var li = document.createElement("li");
+        li.className = "empty-message";
         li.textContent = "Нет файлов.";
         listElem.appendChild(li);
+        return;
     }
+    
+    // Для совместимости со старым форматом (когда файлы были объектами с name и path)
+    // и новым форматом (когда файлы - это просто пути)
+    files.forEach(function(file) {
+        var li = document.createElement("li");
+        li.className = "file-item";
+        
+        // Проверяем, является ли файл объектом или строкой (путь)
+        let fileName, filePath;
+        if (typeof file === 'object' && file.name) {
+            fileName = file.name;
+            filePath = file.path;
+        } else {
+            // Получаем имя файла из пути
+            filePath = file;
+            fileName = file.split('\\').pop().split('/').pop();
+        }
+        
+        li.textContent = fileName;
+        li.dataset.fullpath = filePath;
+        li.dataset.file = fileName;
+        li.dataset.folderType = folderType;
+        li.draggable = true;
+        
+        // Определяем тип файла по расширению для стилизации
+        const extension = ('.' + fileName.split('.').pop()).toLowerCase();
+        if (['.mp3', '.wav', '.ogg', '.flac', '.aif', '.aiff', '.m4a', '.wma'].includes(extension)) {
+            li.classList.add('audio');
+        } else if (['.mp4', '.avi', '.mov', '.mkv', '.wmv'].includes(extension)) {
+            li.classList.add('video');
+        } else if (['.txt', '.srt', '.ass', '.ssa', '.vtt'].includes(extension)) {
+            li.classList.add('text');
+        }
+        
+        li.addEventListener('dragstart', dragStart);
+        li.addEventListener('click', function() {
+            // Выделяем файл
+            document.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+            li.classList.add('selected');
+            
+            // Открываем файл
+            pyBridge.openFile(filePath);
+        });
+        
+        listElem.appendChild(li);
+    });
 }
 
 function openFolderForType(folderType) {
@@ -439,13 +505,112 @@ function allowDrop(event) {
 function dragStart(event) {
     var fullpath = event.target.dataset.fullpath;
     if (fullpath) {
-        var url = "file:///" + fullpath.replace(/\\/g, '/');
-        event.dataTransfer.setData("text/uri-list", url);
+        event.dataTransfer.setData("text/uri-list", "file:///" + fullpath.replace(/\\/g, '/'));
         event.dataTransfer.setData("text/plain", fullpath);
+        event.dataTransfer.setData("folderType", event.target.dataset.folderType);
+        event.dataTransfer.setData("source-type", event.target.dataset.folderType);
+
+        event.target.classList.add('dragged');
+
+        // Сохраняем source element для обновления UI
+        window.currentDraggedElement = event.target;
+        
+        event.dataTransfer.effectAllowed = "copyMove";
     }
 }
 
 
 function drop(event, targetFolderType) {
     event.preventDefault();
+    event.stopPropagation();
+    console.log("Drop на папку:", targetFolderType);
+    
+    // Убираем классы drop-target
+    document.querySelectorAll('.drop-target').forEach(el => {
+        el.classList.remove('drop-target');
+    });
+    
+    // Убираем подсветку родительских контейнеров
+    document.querySelectorAll('.drop-target-container').forEach(el => {
+        el.classList.remove('drop-target-container');
+        el.removeAttribute('data-highlight-type');
+    });
+    
+    // Получаем исходный путь и тип папки
+    const filePath = event.dataTransfer.getData('text/plain');
+    const sourceType = event.dataTransfer.getData('source-type') || event.dataTransfer.getData('folderType');
+    
+    // Если filePath существует - это внутреннее перетаскивание
+    if (filePath) {
+        // Проверяем, что источник и цель разные
+        if (sourceType !== targetFolderType) {
+            console.log(`Перемещение файла из ${sourceType} в ${targetFolderType}: ${filePath}`);
+            
+            // Проверяем, что все необходимые данные есть
+            if (currentProject && currentSeason && currentEpisode) {
+                // Вызываем функцию мостика для перемещения файла
+                pyBridge.moveFile(filePath, targetFolderType, currentProject, currentSeason, currentEpisode, function(result) {
+                    if (result === "success") {
+                        // Обновляем панель
+                        updateRightPanel(currentSeason, currentEpisode);
+                        showToast(`Файл перемещен в ${getTypeName(targetFolderType)}`, 'success');
+                    } else {
+                        showToast('Не удалось переместить файл', 'error');
+                        console.error('Ошибка при перемещении файла:', result);
+                    }
+                });
+            } else {
+                showToast('Выберите проект, сезон и эпизод', 'warning');
+            }
+        } else {
+            // Если тип тот же самый, ничего не делаем
+            console.log('Перетаскивание в ту же папку, игнорируем');
+        }
+    } else {
+        // Внешнее перетаскивание (из файлового менеджера)
+        // Данный функционал обрабатывается PyQt, не в JavaScript
+        console.log('Внешнее перетаскивание, ожидается обработка в PyQt');
+    }
+}
+
+/**
+ * Показывает toast-уведомление
+ * @param {string} message - Сообщение для отображения
+ * @param {string} type - Тип уведомления (success, error, warning)
+ */
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Показываем toast
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // Скрываем через указанное время
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, duration);
+}
+
+/**
+ * Возвращает отображаемое имя типа папки
+ * @param {string} type - Тип папки
+ * @returns {string} - Отображаемое имя
+ */
+function getTypeName(type) {
+    const typeNames = {
+        'raws': 'Равки',
+        'roads': 'Делённые дороги',
+        'voice': 'Озвучка',
+        'subs': 'Субтитры'
+    };
+    
+    return typeNames[type] || type;
 }

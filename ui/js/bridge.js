@@ -1,20 +1,19 @@
-// Файл bridge.js - взаимодействие с Python через QWebChannel
+
 
 var pyBridge;
 
-// Инициализация моста между JS и Python
+
 new QWebChannel(qt.webChannelTransport, function(channel) {
     pyBridge = channel.objects.pyBridge;
     refreshBaseDirList();
     refreshProjectList();
 });
 
-// Функции для работы с базовыми директориями
+
 function browseBaseDir() {
     pyBridge.browseDirectory(function(path) {
         if (path) {
             document.getElementById("newBaseDir").value = path;
-            console.log("Папка выбрана: " + path);
         }
     });
 }
@@ -56,7 +55,6 @@ function addBaseDir() {
     var path = document.getElementById("newBaseDir").value;
     if (!path) return;
     pyBridge.addBaseDirectory(path, function(response) {
-        console.log(response);
         refreshBaseDirList();
         document.getElementById("newBaseDir").value = "";
     });
@@ -64,7 +62,6 @@ function addBaseDir() {
 
 function deleteBaseDir(index) {
     pyBridge.deleteBaseDirectory(index, function(response) {
-        console.log(response);
         refreshBaseDirList();
         refreshProjectList();
     });
@@ -72,19 +69,18 @@ function deleteBaseDir(index) {
 
 function setCurrentBaseDir(index) {
     pyBridge.setCurrentBaseDirectory(index, function(response) {
-        console.log(response);
         refreshProjectList();
         showSection('projectListSection');
         document.getElementById("currentBaseDirName").textContent = currentBaseDir;
     });
 }
 
-// Добавим функцию конвертации структуры
+
 function convertProjectStructure(projectName) {
     if (confirm("Конвертировать структуру проекта " + projectName + " в новый формат? Это может занять некоторое время. ВАЖНО! конвертирует только со старой структуры программы")) {
         pyBridge.convertProjectStructure(projectName, function(response) {
             alert(response);
-            refreshProjectList(); // Обновляем список после конвертации
+            refreshProjectList(); 
         });
     }
 }

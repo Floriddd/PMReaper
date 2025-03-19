@@ -1,8 +1,7 @@
-// Файл projects.js - работа с проектами
+
 
 function refreshProjectList() {
     pyBridge.listProjects(function(response) {
-        console.log("JS: Ответ от listProjects:", response);
         var projects = JSON.parse(response);
         if (projects === null) {
             projects = [];
@@ -36,14 +35,12 @@ function createProject() {
     var projectName = document.getElementById("newProjectName").value.trim();
     if (!projectName) return;
     pyBridge.createProject(projectName, function(response) {
-        console.log(response);
         refreshProjectList();
     });
 }
 
 function deleteProject(projectName) {
     pyBridge.deleteProject(projectName, function(response) {
-        console.log(response);
         refreshProjectList();
     });
 }
@@ -52,7 +49,6 @@ function openProject(projectName) {
     currentProject = projectName;
     currentSeason = "";
     currentEpisode = "";
-    console.log("JS: openProject - currentProject set to:", currentProject);
     pyBridge.setCurrentProject(projectName);
 
     document.getElementById("currentProjectName").textContent = projectName;
