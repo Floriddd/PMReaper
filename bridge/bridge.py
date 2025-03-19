@@ -874,3 +874,15 @@ class Bridge(QObject):
             return "[DEBUG] Структура проекта конвертирована, старые папки перемещены в _old."
         except Exception as e:
             return f"[DEBUG] Ошибка конвертации структуры проекта: {str(e)}"
+
+    @pyqtSlot(str, result=str)
+    def getCurrentProject(self, callback):
+        """Возвращает текущий проект"""
+        self.view.page().runJavaScript(f"{callback}('{self.current_project}')")
+        return self.current_project
+
+    @pyqtSlot(str, result=str)
+    def getBaseDir(self, callback):
+        """Возвращает базовую директорию"""
+        self.view.page().runJavaScript(f"{callback}('{self.base_dir}')")
+        return self.base_dir

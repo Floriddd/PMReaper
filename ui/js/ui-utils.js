@@ -1,5 +1,17 @@
+let currentProject = '';
+let baseDir = '';
 
-
+// Инициализация переменных при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    // Получаем текущий проект и базовую директорию из Python
+    pyBridge.getCurrentProject((project) => {
+        currentProject = project;
+    });
+    
+    pyBridge.getBaseDir((dir) => {
+        baseDir = dir;
+    });
+});
 
 function updateRightPanel(season, episode) {
     if (!season || !episode || !currentProject) {

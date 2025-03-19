@@ -49,13 +49,12 @@ class MainWindow(QMainWindow):
 
     def setup_bridge_extensions(self):
         """Добавляет дополнительные методы для моста Python-JavaScript"""
-
         setattr(self.bridge, 'browseReaperPath', self.browse_reaper_path)
-
         setattr(self.bridge, 'openProjectFolder', self.open_project_folder)
-
         setattr(self.bridge, 'getSystemInfo', self.get_system_info)
-        
+        setattr(self.bridge, 'getCurrentProject', self.bridge.getCurrentProject)
+        setattr(self.bridge, 'getBaseDir', self.bridge.getBaseDir)
+
     @pyqtSlot(result=str)
     def get_system_info(self):
         """Возвращает информацию о системе в формате JSON"""
