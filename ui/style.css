@@ -296,16 +296,48 @@ li {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px;
+    padding: 12px 16px;
     background-color: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     margin-bottom: 8px;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-subtle);
     transition: all var(--transition-fast);
 }
 
 .base-dir-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
     border-color: var(--border-strong);
+}
+
+.dir-name {
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.dir-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.dir-open-btn {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.dir-open-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.dir-delete-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--danger);
+}
+
+.dir-delete-btn:hover {
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
 }
 
 .base-dir-list li .dir-actions {
@@ -420,7 +452,19 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+}
+
+.season-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.season-edit-btn,
+.season-open-btn,
+.season-delete-btn {
+    padding: 5px;
+    font-size: 12px;
 }
 
 .episode {
@@ -443,6 +487,83 @@ li {
 .episode.selected {
     background-color: rgba(110, 86, 207, 0.1);
     border-color: var(--accent-primary);
+}
+
+.episode-edit-btn,
+.episode-open-btn,
+.episode-launch-btn,
+.episode-delete-btn {
+    padding: 4px;
+    margin-left: 4px;
+}
+
+.episode-edit-btn {
+    color: var(--accent-secondary);
+}
+
+.episode-edit-btn:hover {
+    background-color: var(--accent-secondary);
+    color: white;
+}
+
+.episode-open-btn {
+    color: var(--text-secondary);
+}
+
+.episode-open-btn:hover {
+    background-color: var(--text-secondary);
+    color: var(--bg-secondary);
+}
+
+.episode-launch-btn {
+    color: var(--success);
+}
+
+.episode-launch-btn:hover {
+    background-color: var(--success);
+    color: white;
+}
+
+.episode-delete-btn {
+    color: var(--danger);
+}
+
+.episode-delete-btn:hover {
+    background-color: var(--danger);
+    color: white;
+}
+
+.add-episode-btn {
+    margin-top: 8px;
+    width: 100%;
+    color: var(--accent-primary);
+    border: 1px dashed var(--border-strong);
+}
+
+.add-episode-btn:hover {
+    background-color: var(--accent-primary);
+    color: white;
+    border-style: solid;
+}
+
+.season-save-btn,
+.episode-save-btn {
+    background-color: var(--success);
+    color: white;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.season-save-btn:hover,
+.episode-save-btn:hover {
+    background-color: #1ca34d;
+    color: white;
+}
+
+.seasonEditInput,
+.episodeEditInput {
+    margin-top: 8px;
+    width: 80px;
 }
 
 .project-actions {
@@ -880,6 +1001,28 @@ body.dragging .file-list.potential-drop-target {
     transition: background-color var(--transition-fast);
 }
 
+ul#baseDirList {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+ul#baseDirList li {
+    grid-column: span 2; /* По умолчанию каждый элемент занимает 2 колонки */
+}
+
+/* Если в строке один элемент, он занимает все 6 колонок */
+ul#baseDirList li:nth-child(3n + 1):nth-last-child(1) {
+    grid-column: span 6;
+}
+
+/* Если в строке два элемента, каждый занимает 3 колонки */
+ul#baseDirList li:nth-child(3n + 1):nth-last-child(2),
+ul#baseDirList li:nth-child(3n + 1):nth-last-child(2) + li {
+    grid-column: span 3;
+}
+
+
 /* Базовый стиль для элементов с подсказками */
 [data-tooltip] {
     position: relative;
@@ -925,4 +1068,104 @@ body.dragging .file-list.potential-drop-target {
 [data-tooltip]:hover:after {
     opacity: 1;
     visibility: visible;
+}
+
+.project-list {
+    margin-bottom: 16px;
+}
+
+.project-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-tertiary);
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    border: 1px solid var(--border-subtle);
+}
+
+.project-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+}
+
+.project-name {
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.project-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.project-open-btn {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+.project-open-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.project-edit-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--accent-secondary);
+}
+
+.project-edit-btn:hover {
+    background-color: var(--accent-secondary);
+    color: white;
+}
+
+.project-save-btn {
+    background-color: var(--success);
+    color: white;
+    margin-right: 8px;
+}
+
+.project-save-btn:hover {
+    background-color: #1ca34d;
+    color: white;
+    border-color: var(--success);
+}
+
+.projectEditInput {
+    margin-right: 8px;
+}
+
+.project-delete-btn {
+    background-color: var(--bg-tertiary);
+    color: var(--danger);
+}
+
+.project-delete-btn:hover {
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.project-form {
+    background-color: var(--bg-tertiary);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    margin-top: 20px;
+    border: 1px solid var(--border-subtle);
+}
+
+.project-form h3 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.project-form .input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.project-form input {
+    flex-grow: 1;
 }

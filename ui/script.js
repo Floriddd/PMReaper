@@ -38,23 +38,39 @@ function refreshBaseDirList() {
             if (dir.length > 50) {
                 dirName = "..." + dir.slice(-50);
             }
-            li.textContent = dirName;
-            li.title = dir;
-
+            
+            // Создаем контейнер для названия директории
+            var dirNameSpan = document.createElement("span");
+            dirNameSpan.className = "dir-name";
+            dirNameSpan.textContent = dirName;
+            dirNameSpan.title = dir;
+            li.appendChild(dirNameSpan);
+            
+            // Создаем контейнер для кнопок
+            var controlsDiv = document.createElement("div");
+            controlsDiv.className = "dir-controls";
+            
+            // Кнопка выбора директории
             var selectBtn = document.createElement("button");
-            selectBtn.textContent = "➡️";
+            selectBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            selectBtn.className = "dir-open-btn";
+            selectBtn.title = "Выбрать директорию";
             selectBtn.onclick = function() { setCurrentBaseDir(index); };
-            li.appendChild(selectBtn);
-
+            controlsDiv.appendChild(selectBtn);
+            
+            // Кнопка удаления директории
             var deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "❌";
+            deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>';
+            deleteBtn.className = "dir-delete-btn";
+            deleteBtn.title = "Удалить директорию";
             deleteBtn.onclick = function() {
                 if (confirm("Удалить директорию " + dir + "?")) {
                     deleteBaseDir(index);
                 }
             };
-            li.appendChild(deleteBtn);
-
+            controlsDiv.appendChild(deleteBtn);
+            
+            li.appendChild(controlsDiv);
             listElem.appendChild(li);
         });
     });
@@ -97,22 +113,41 @@ function refreshProjectList() {
         listElem.innerHTML = "";
         projects.forEach(function(proj) {
             var li = document.createElement("li");
-            li.textContent = proj + " ";
+            
+            var projectNameSpan = document.createElement("span");
+            projectNameSpan.className = "project-name";
+            projectNameSpan.textContent = proj;
+            li.appendChild(projectNameSpan);
+            
+            var controlsDiv = document.createElement("div");
+            controlsDiv.className = "project-controls";
+
+            var editBtn = document.createElement("button");
+            editBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+            editBtn.className = "project-edit-btn";
+            editBtn.title = "Редактировать проект";
+            editBtn.onclick = function() { toggleProjectEdit(li, proj); };
+            controlsDiv.appendChild(editBtn);
 
             var openBtn = document.createElement("button");
-            openBtn.textContent = "➡️";
+            openBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+            openBtn.className = "project-open-btn";
+            openBtn.title = "Открыть проект";
             openBtn.onclick = function() { openProject(proj); };
-            li.appendChild(openBtn);
+            controlsDiv.appendChild(openBtn);
 
             var deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "❌";
+            deleteBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>';
+            deleteBtn.className = "project-delete-btn";
+            deleteBtn.title = "Удалить проект";
             deleteBtn.onclick = function() {
                 if (confirm("Удалить проект " + proj + "?")) {
                     deleteProject(proj);
                 }
             };
-            li.appendChild(deleteBtn);
+            controlsDiv.appendChild(deleteBtn);
 
+            li.appendChild(controlsDiv);
             listElem.appendChild(li);
         });
     });
@@ -168,28 +203,43 @@ function refreshTree() {
             seasonDiv.className = "season";
             seasonDiv.dataset.season = season;
 
+            var headerContainer = document.createElement("div");
+            headerContainer.className = "season-header";
+            
             var header = document.createElement("h3");
             header.textContent = season + " сезон";
-            seasonDiv.appendChild(header);
+            headerContainer.appendChild(header);
+
+            var buttonsContainer = document.createElement("div");
+            buttonsContainer.className = "season-controls";
 
             var editSeasonBtn = document.createElement("button");
-            editSeasonBtn.textContent = "✏️";
+            editSeasonBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+            editSeasonBtn.className = "season-edit-btn";
+            editSeasonBtn.title = "Редактировать сезон";
             editSeasonBtn.onclick = function() { toggleSeasonEdit(season, seasonDiv); };
-            seasonDiv.appendChild(editSeasonBtn);
+            buttonsContainer.appendChild(editSeasonBtn);
 
             var openSeasonBtn = document.createElement("button");
-            openSeasonBtn.textContent = "📂";
+            openSeasonBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+            openSeasonBtn.className = "season-open-btn";
+            openSeasonBtn.title = "Открыть папку сезона";
             openSeasonBtn.onclick = function() { openSeasonFolder(season); };
-            seasonDiv.appendChild(openSeasonBtn);
+            buttonsContainer.appendChild(openSeasonBtn);
 
             var deleteSeasonBtn = document.createElement("button");
-            deleteSeasonBtn.textContent = "❌";
+            deleteSeasonBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>';
+            deleteSeasonBtn.className = "season-delete-btn";
+            deleteSeasonBtn.title = "Удалить сезон";
             deleteSeasonBtn.onclick = function() {
                 if (confirm("Удалить сезон " + season + " и все его эпизоды?")) {
                     deleteSeason(season);
                 }
             };
-            seasonDiv.appendChild(deleteSeasonBtn);
+            buttonsContainer.appendChild(deleteSeasonBtn);
+            
+            headerContainer.appendChild(buttonsContainer);
+            seasonDiv.appendChild(headerContainer);
 
             var epList = document.createElement("ul");
             if (episodesData[season] && episodesData[season].length > 0) {
@@ -205,22 +255,30 @@ function refreshTree() {
                     });
 
                     var editEpBtn = document.createElement("button");
-                    editEpBtn.textContent = "✏️";
+                    editEpBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+                    editEpBtn.className = "episode-edit-btn";
+                    editEpBtn.title = "Редактировать эпизод";
                     editEpBtn.onclick = function() { toggleEpisodeEdit(season, ep, li); };
                     li.appendChild(editEpBtn);
 
                     var openEpBtn = document.createElement("button");
-                    openEpBtn.textContent = "📂";
+                    openEpBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
+                    openEpBtn.className = "episode-open-btn";
+                    openEpBtn.title = "Открыть папку эпизода";
                     openEpBtn.onclick = function() { openEpisodeFolder(season, ep); };
                     li.appendChild(openEpBtn);
 
                     var openRppBtn = document.createElement("button");
-                    openRppBtn.textContent = "Запустить";
+                    openRppBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"></path></svg>';
+                    openRppBtn.className = "episode-launch-btn";
+                    openRppBtn.title = "Запустить проект";
                     openRppBtn.onclick = function() { openProjectFile(season, ep); };
                     li.appendChild(openRppBtn);
 
                     var deleteEpBtn = document.createElement("button");
-                    deleteEpBtn.textContent = "❌";
+                    deleteEpBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>';
+                    deleteEpBtn.className = "episode-delete-btn";
+                    deleteEpBtn.title = "Удалить эпизод";
                     deleteEpBtn.onclick = function() {
                         if (confirm("Удалить эпизод " + ep + " сезона " + season + "?")) {
                             deleteEpisode(season, ep);
@@ -236,7 +294,8 @@ function refreshTree() {
                 seasonDiv.appendChild(p);
             }
             var addEpBtn = document.createElement("button");
-            addEpBtn.textContent = "+ Добавить серию";
+            addEpBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Добавить серию';
+            addEpBtn.className = "add-episode-btn";
             addEpBtn.onclick = function() { addEpisode(season); };
 
             seasonDiv.appendChild(epList);
@@ -311,8 +370,9 @@ function toggleSeasonEdit(oldSeason, seasonDiv) {
         input.value = oldSeason;
         seasonDiv.appendChild(input);
         var saveBtn = document.createElement("button");
-        saveBtn.textContent = "Сохранить";
-        saveBtn.className = "seasonSaveBtn";
+        saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Сохранить';
+        saveBtn.className = "season-save-btn";
+        saveBtn.title = "Сохранить";
         saveBtn.onclick = function() {
             var newSeason = parseInt(input.value);
             if (isNaN(newSeason) || newSeason <= 0) {
@@ -326,7 +386,7 @@ function toggleSeasonEdit(oldSeason, seasonDiv) {
         };
         seasonDiv.appendChild(saveBtn);
     } else {
-        var saveBtn = seasonDiv.querySelector("button.seasonSaveBtn");
+        var saveBtn = seasonDiv.querySelector("button.season-save-btn");
         if (saveBtn) saveBtn.remove();
         input.remove();
     }
@@ -341,8 +401,9 @@ function toggleEpisodeEdit(season, oldEpisode, li) {
         input.value = oldEpisode;
         li.appendChild(input);
         var saveBtn = document.createElement("button");
-        saveBtn.textContent = "Сохранить";
-        saveBtn.className = "episodeSaveBtn";
+        saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Сохранить';
+        saveBtn.className = "episode-save-btn";
+        saveBtn.title = "Сохранить";
         saveBtn.onclick = function() {
             var newEpisode = parseInt(input.value);
             if (isNaN(newEpisode) || newEpisode <= 0) {
@@ -356,7 +417,7 @@ function toggleEpisodeEdit(season, oldEpisode, li) {
         };
         li.appendChild(saveBtn);
     } else {
-        var saveBtn = li.querySelector("button.episodeSaveBtn");
+        var saveBtn = li.querySelector("button.episode-save-btn");
         if (saveBtn) saveBtn.remove();
         input.remove();
     }
@@ -613,4 +674,141 @@ function getTypeName(type) {
     };
     
     return typeNames[type] || type;
+}
+
+function toggleProjectEdit(li, projectName) {
+    // Находим существующий элемент названия проекта или форму редактирования
+    var input = li.querySelector("input.projectEditInput");
+    
+    if (!input) {
+        // Режим редактирования
+        var nameSpan = li.querySelector(".project-name");
+        if (!nameSpan) {
+            console.error("Не найден элемент с классом .project-name");
+            return;
+        }
+        
+        var oldProjectName = nameSpan.textContent;
+        
+        // Сохраняем оригинальное содержимое
+        var originalContent = nameSpan.innerHTML;
+        
+        // Скрываем название проекта
+        nameSpan.style.display = "none";
+        
+        // Создаем поле ввода
+        input = document.createElement("input");
+        input.type = "text";
+        input.className = "projectEditInput";
+        input.value = oldProjectName;
+        li.insertBefore(input, nameSpan);
+        
+        // Создаем кнопку сохранения
+        var saveBtn = document.createElement("button");
+        saveBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 8.5L5.5 13.5L5.5 3.5L13.5 8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        saveBtn.className = "project-save-btn";
+        saveBtn.title = "Сохранить";
+        
+        // Обработчик для кнопки сохранения
+        saveBtn.onclick = function() {
+            var newProjectName = input.value.trim();
+            
+            if (newProjectName === '' || newProjectName === oldProjectName) {
+                // Если имя не изменилось или пустое, восстанавливаем исходное состояние
+                nameSpan.style.display = "";
+                saveBtn.remove();
+                input.remove();
+                return;
+            }
+            
+            console.log(`Переименование проекта: ${oldProjectName} -> ${newProjectName}`);
+            
+            try {
+                // Вызываем метод переименования проекта
+                var result = pyBridge.renameProjectFolder(oldProjectName, newProjectName);
+                
+                // Проверяем, является ли результат Promise
+                if (result && typeof result.then === 'function') {
+                    result.then(function(response) {
+                        console.log("Ответ после переименования:", response);
+                        
+                        if (response === "success") {
+                            showToast("Проект переименован", "success");
+                            refreshProjectList();
+                        } else {
+                            // Если ответ начинается с "error:", отображаем ошибку
+                            if (response && response.startsWith("error:")) {
+                                showToast("Ошибка при переименовании: " + response.substring(6), "error");
+                            } else {
+                                showToast("Ошибка при переименовании: " + response, "error");
+                            }
+                            
+                            // Восстанавливаем исходное состояние
+                            nameSpan.style.display = "";
+                            saveBtn.remove();
+                            input.remove();
+                        }
+                    }).catch(function(error) {
+                        console.error("Ошибка при переименовании:", error);
+                        showToast("Ошибка при переименовании: " + error, "error");
+                        
+                        // Восстанавливаем исходное состояние
+                        nameSpan.style.display = "";
+                        saveBtn.remove();
+                        input.remove();
+                    });
+                } else {
+                    // Если результат не Promise, обрабатываем как синхронный ответ
+                    console.log("Синхронный ответ после переименования:", result);
+                    
+                    if (result === "success") {
+                        showToast("Проект переименован", "success");
+                        refreshProjectList();
+                    } else {
+                        // Если ответ начинается с "error:", отображаем ошибку
+                        if (result && result.startsWith("error:")) {
+                            showToast("Ошибка при переименовании: " + result.substring(6), "error");
+                        } else {
+                            showToast("Ошибка при переименовании: " + result, "error");
+                        }
+                        
+                        // Восстанавливаем исходное состояние
+                        nameSpan.style.display = "";
+                        saveBtn.remove();
+                        input.remove();
+                    }
+                }
+            } catch (e) {
+                console.error("Ошибка при вызове метода переименования:", e);
+                showToast("Ошибка при вызове метода переименования", "error");
+                
+                // Восстанавливаем исходное состояние
+                nameSpan.style.display = "";
+                saveBtn.remove();
+                input.remove();
+            }
+        };
+        
+        // Добавляем кнопку сохранения перед контролами
+        var controlsDiv = li.querySelector('.project-controls');
+        if (controlsDiv) {
+            li.insertBefore(saveBtn, controlsDiv);
+        } else {
+            li.appendChild(saveBtn);
+        }
+        
+        // Устанавливаем фокус на поле ввода
+        input.focus();
+    } else {
+        // Режим отмены редактирования
+        var nameSpan = li.querySelector(".project-name");
+        if (nameSpan) {
+            nameSpan.style.display = "";
+        }
+        
+        var saveBtn = li.querySelector(".project-save-btn");
+        if (saveBtn) saveBtn.remove();
+        
+        input.remove();
+    }
 }

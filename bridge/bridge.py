@@ -2,6 +2,10 @@ import os
 import json
 import shutil
 import appdirs
+import sys
+import ctypes
+import subprocess
+import tempfile
 from PyQt6.QtCore import pyqtSlot, QObject, QFileSystemWatcher, pyqtSignal
 from PyQt6.QtWidgets import QFileDialog
 
@@ -886,3 +890,218 @@ class Bridge(QObject):
         """Возвращает базовую директорию"""
         self.view.page().runJavaScript(f"{callback}('{self.base_dir}')")
         return self.base_dir
+
+    @pyqtSlot(str, str, result=str)
+    def renameProjectFolder(self, oldProjectName, newProjectName):
+        """
+        Переименовывает папку проекта без потери данных
+        """
+        print(f"[DEBUG] renameProjectFolder вызвана: {oldProjectName} -> {newProjectName}")
+        
+        try:
+            if not self.base_dir or not os.path.isdir(self.base_dir):
+                return "error: Сначала установите базовую директорию."
+                
+            old_path = os.path.join(self.base_dir, oldProjectName)
+            new_path = os.path.join(self.base_dir, newProjectName)
+            
+            if not os.path.exists(old_path):
+                return "error: Проект не найден."
+                
+            if os.path.exists(new_path):
+                return "error: Проект с таким именем уже существует."
+            
+            # Проверяем открытые файлы в папке перед переименованием
+            try:
+                for root, dirs, files in os.walk(old_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        try:
+                            # Пробуем открыть файл на запись, чтобы проверить, не занят ли он
+                            with open(file_path, 'a'):
+                                pass
+                        except PermissionError:
+                            print(f"[DEBUG] Файл {file_path} открыт другим процессом")
+                            return "error: Некоторые файлы в проекте открыты другими программами. Закройте все файлы перед переименованием."
+            except Exception as e:
+                print(f"[DEBUG] Ошибка при проверке открытых файлов: {str(e)}")
+                # Продолжаем выполнение, так как это необязательная проверка
+                
+            # Пытаемся переименовать папку проекта
+            try:
+                os.rename(old_path, new_path)
+                print(f"[DEBUG] Папка проекта переименована: {old_path} -> {new_path}")
+            except (PermissionError, OSError) as e:
+                print(f"[DEBUG] Ошибка доступа при попытке переименовать {old_path}: {str(e)}")
+                
+                # Собираем информацию о файлах .rpp для переименования
+                files_to_rename = []
+                for season_folder in [d for d in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, d)) and d.startswith("S")]:
+                    season_path = os.path.join(old_path, season_folder)
+                    for episode_folder in [d for d in os.listdir(season_path) if os.path.isdir(os.path.join(season_path, d)) and d.startswith(season_folder + "-E")]:
+                        reaper_path = os.path.join(season_path, episode_folder, "reaper")
+                        if os.path.exists(reaper_path):
+                            for file in os.listdir(reaper_path):
+                                if file.endswith(".rpp") and file.startswith(oldProjectName):
+                                    old_file_path = os.path.join(reaper_path, file)
+                                    new_file_name = file.replace(oldProjectName, newProjectName, 1)
+                                    new_file_path = os.path.join(reaper_path, new_file_name)
+                                    files_to_rename.append((old_file_path, new_file_path))
+                
+                # Пытаемся выполнить операцию с правами администратора
+                success, message = self.elevate_privileges('rename', {
+                    'old_path': old_path,
+                    'new_path': new_path,
+                    'files_to_rename': files_to_rename
+                })
+                
+                if not success:
+                    return f"error: {message}"
+                
+                print(f"[DEBUG] Результат операции с правами администратора: {message}")
+                
+                # Проверяем, была ли операция успешной
+                if not os.path.exists(new_path):
+                    return "error: Не удалось переименовать проект даже с правами администратора."
+            
+            # Обновляем текущий проект, если это он
+            if self.current_project == oldProjectName:
+                self.current_project = newProjectName
+                print(f"[DEBUG] Текущий проект обновлен: {oldProjectName} -> {newProjectName}")
+                
+            # Если операция с правами администратора успешна, нам не нужно переименовывать файлы .rpp,
+            # так как это уже сделано в скрипте администратора. Иначе обновляем имена файлов здесь:
+            if os.path.exists(new_path) and not 'success' in locals():
+                # Нужно также обновить имена файлов .rpp внутри папок сезонов и эпизодов
+                for season_folder in [d for d in os.listdir(new_path) if os.path.isdir(os.path.join(new_path, d)) and d.startswith("S")]:
+                    season_path = os.path.join(new_path, season_folder)
+                    for episode_folder in [d for d in os.listdir(season_path) if os.path.isdir(os.path.join(season_path, d)) and d.startswith(season_folder + "-E")]:
+                        reaper_path = os.path.join(season_path, episode_folder, "reaper")
+                        if os.path.exists(reaper_path):
+                            for file in os.listdir(reaper_path):
+                                if file.endswith(".rpp") and file.startswith(oldProjectName):
+                                    old_file_path = os.path.join(reaper_path, file)
+                                    new_file_name = file.replace(oldProjectName, newProjectName, 1)
+                                    new_file_path = os.path.join(reaper_path, new_file_name)
+                                    try:
+                                        os.rename(old_file_path, new_file_path)
+                                        print(f"[DEBUG] Файл проекта переименован: {old_file_path} -> {new_file_path}")
+                                    except Exception as e:
+                                        print(f"[DEBUG] Ошибка при переименовании файла {old_file_path}: {str(e)}")
+                                        # Продолжаем выполнение, так как эта ошибка не критична
+            
+            self.filesChanged.emit()  # Отправляем сигнал об изменении файлов
+            return "success"
+        except Exception as e:
+            error_msg = f"error: {str(e)}"
+            print(f"[DEBUG] Ошибка при переименовании проекта: {str(e)}")
+            return error_msg
+
+    def elevate_privileges(self, operation, args):
+        """
+        Запрашивает повышенные права админа для выполнения операции
+        operation: строка с названием операции ('rename', 'delete', etc.)
+        args: словарь с аргументами для операции
+        """
+        try:
+            # Создаем временный файл для передачи параметров
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.json', mode='w', encoding='utf-8')
+            temp_path = temp_file.name
+            
+            # Записываем данные операции в файл
+            data = {
+                'operation': operation,
+                'args': args
+            }
+            json.dump(data, temp_file, ensure_ascii=False)
+            temp_file.close()
+            
+            # Путь к текущему Python интерпретатору
+            python_exe = sys.executable
+            
+            # Путь к вспомогательному скрипту (создадим его позже)
+            helper_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'admin_helper.py')
+            
+            # Проверяем существование вспомогательного скрипта, если нет - создаем
+            if not os.path.exists(helper_script):
+                with open(helper_script, 'w', encoding='utf-8') as f:
+                    f.write("""import os
+import sys
+import json
+import shutil
+
+def main():
+    if len(sys.argv) != 2:
+        print("Ошибка: Неверное количество аргументов")
+        return 1
+    
+    temp_path = sys.argv[1]
+    
+    try:
+        with open(temp_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        operation = data['operation']
+        args = data['args']
+        
+        if operation == 'rename':
+            old_path = args['old_path']
+            new_path = args['new_path']
+            
+            if os.path.exists(old_path):
+                os.rename(old_path, new_path)
+                print(f"Успешно переименовано: {old_path} -> {new_path}")
+                
+                # Если нужно переименовать файлы внутри, тоже можно добавить здесь
+                if 'files_to_rename' in args and args['files_to_rename']:
+                    for old_file, new_file in args['files_to_rename']:
+                        if os.path.exists(old_file):
+                            os.rename(old_file, new_file)
+                            print(f"Файл переименован: {old_file} -> {new_file}")
+            else:
+                print(f"Путь не существует: {old_path}")
+                return 1
+        
+        # Можно добавить другие операции при необходимости
+        
+        # Удаляем временный файл
+        os.remove(temp_path)
+        return 0
+    except Exception as e:
+        print(f"Ошибка при выполнении операции: {e}")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
+""")
+            
+            # Используем ShellExecute для запуска с правами администратора
+            if ctypes.windll.shell32.IsUserAnAdmin():
+                # Если уже есть права админа, просто запускаем скрипт
+                result = subprocess.run([python_exe, helper_script, temp_path], capture_output=True, text=True)
+                success = result.returncode == 0
+                message = result.stdout.strip() if success else result.stderr.strip()
+                
+                # Удаляем временный файл
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass
+                
+                return success, message
+            else:
+                # Запрашиваем права администратора
+                ctypes.windll.shell32.ShellExecuteW(
+                    None,            # Дескриптор родительского окна
+                    "runas",         # Операция (runas запрашивает права админа)
+                    python_exe,      # Приложение
+                    f'"{helper_script}" "{temp_path}"',  # Параметры
+                    None,            # Рабочая директория
+                    1                # Показать окно
+                )
+                
+                # Возвращаем сообщение о том, что операция запущена с правами администратора
+                return True, "Операция запущена с правами администратора."
+        except Exception as e:
+            print(f"[DEBUG] Ошибка при запросе прав администратора: {str(e)}")
+            return False, f"Ошибка при запросе прав администратора: {str(e)}"
